@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your account — StarryTales</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="card wide">
+    <h1>Your StarryTales account</h1>
+    <p class="sub">Manage your children's stories, themes, and billing.</p>
+
+    <div id="billingBox">
+      <button id="manageBillingBtn" class="secondary">Manage billing / subscription</button>
+      <button id="startTrialBtn" style="margin-top:10px;">Start subscription ($9.99/mo)</button>
+    </div>
+
+    <hr style="margin:26px 0; border:none; border-top:1px dashed rgba(42,33,24,0.2);">
+
+    <h1 style="font-size:1.2rem;">Add a child</h1>
+    <form id="addChildForm">
+      <label for="childName">Child's name</label>
+      <input type="text" id="childName" required maxlength="30">
+      <label for="storyTheme">Preferred story type</label>
+      <select id="storyTheme" required>
+        <option value="" disabled selected>Choose a theme</option>
+        <option value="adventure">Brave Adventure</option>
+        <option value="fantasy">Fantasy Kingdom</option>
+        <option value="space">Outer Space</option>
+        <option value="underwater">Underwater World</option>
+        <option value="animals">Animal Friends</option>
+        <option value="fairytale">Classic Fairy Tale</option>
+      </select>
+      <button type="submit">Add child</button>
+      <div class="msg" id="addChildMsg"></div>
+    </form>
+
+    <hr style="margin:26px 0; border:none; border-top:1px dashed rgba(42,33,24,0.2);">
+
+    <h1 style="font-size:1.2rem;">Your children</h1>
+    <div id="childrenList"></div>
+
+    <p class="foot-link"><a href="#" id="logoutLink">Log out</a></p>
+  </div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

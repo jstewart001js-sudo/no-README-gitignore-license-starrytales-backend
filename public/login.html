@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log in — StarryTales</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="card">
+    <h1>Welcome back</h1>
+    <p class="sub">Log in to manage your child's stories.</p>
+    <form id="loginForm">
+      <label for="email">Email address</label>
+      <input type="email" id="email" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" required>
+      <button type="submit">Log in</button>
+      <div class="msg" id="msg"></div>
+    </form>
+    <p class="foot-link">New here? <a href="index.html#signup">Start your free trial</a></p>
+  </div>
+
+<script>
+  const API_BASE = window.location.origin;
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    msg.className = 'msg';
+
+    const parentEmail = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parentEmail, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        msg.textContent = data.error || 'Could not log in.';
+        msg.classList.add('show', 'error');
+        return;
+      }
+
+      localStorage.setItem('starrytales_token', data.token);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      msg.textContent = 'Network error — please try again.';
+      msg.classList.add('show', 'error');
+    }
+  });
+</script>
+</body>
+</html>

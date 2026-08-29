@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StarryTales — A new bedtime story, every night, starring your child</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --midnight:#0c1526;
+    --indigo:#1b2a4e;
+    --indigo-light:#28396a;
+    --indigo-lighter:#33468a;
+    --gold:#f4c77a;
+    --gold-deep:#dfa64a;
+    --lavender:#c9b8e8;
+    --parchment:#faf3e4;
+    --parchment-dim:#efe4cd;
+    --rose:#e8927a;
+    --ink:#2a2118;
+    --star:#ffffff;
+    --font-display:'Fraunces', serif;
+    --font-body:'Nunito', sans-serif;
+    --container:1140px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font-body);
+    background:var(--midnight);
+    color:var(--parchment);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  img,svg{display:block; max-width:100%;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+  input,select{font-family:inherit;}
+
+  .wrap{max-width:var(--container); margin:0 auto; padding:0 28px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+  }
+
+  :focus-visible{outline:3px solid var(--gold); outline-offset:3px; border-radius:4px;}
+
+  /* ---------- NAV ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding:20px 0;
+    transition:background .35s ease, padding .35s ease, box-shadow .35s ease;
+  }
+  header.scrolled{
+    background:rgba(12,21,38,0.92);
+    backdrop-filter:blur(10px);
+    padding:12px 0;
+    box-shadow:0 8px 24px rgba(0,0,0,0.25);
+  }
+  nav{display:flex; align-items:center; justify-content:space-between;}
+  .logo{
+    font-family:var(--font-display);
+    font-size:1.5rem; font-weight:600; letter-spacing:0.01em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo-mark{width:22px; height:22px; flex-shrink:0;}
+  .nav-links{display:flex; align-items:center; gap:32px; font-weight:700; font-size:0.95rem;}
+  .nav-links a{opacity:0.85; transition:opacity .2s;}
+  .nav-links a:hover{opacity:1;}
+  .nav-cta{
+    background:var(--gold);
+    color:var(--midnight);
+    padding:11px 22px;
+    border-radius:100px;
+    font-weight:800;
+    font-size:0.92rem;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .nav-cta:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(244,199,122,0.35);}
+  .nav-toggle{display:none; background:none; color:var(--parchment); font-size:1.6rem;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex; align-items:center;
+    padding:140px 0 100px;
+    background:radial-gradient(ellipse at 20% 0%, #16264a 0%, var(--midnight) 55%);
+    overflow:hidden;
+  }
+  .starfield{position:absolute; inset:0; z-index:0;}
+  .star{
+    position:absolute; background:var(--star); border-radius:50%;
+    animation:twinkle 3.5s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:0.2; transform:scale(0.8);}
+    50%{opacity:1; transform:scale(1.15);}
+  }
+  .moon{
+    position:absolute; top:8%; right:6%; width:150px; height:150px;
+    animation:float 7s ease-in-out infinite;
+    filter:drop-shadow(0 0 40px rgba(244,199,122,0.45));
+    z-index:0;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-18px);}
+  }
+  .hero-grid{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-weight:800; font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:22px;
+  }
+  .eyebrow::before{content:'✦';}
+  h1{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:clamp(2.4rem, 4.4vw + 1rem, 4.2rem);
+    line-height:1.08;
+    letter-spacing:-0.01em;
+    margin-bottom:22px;
+  }
+  h1 em{
+    font-style:italic; color:var(--gold); font-weight:500;
+  }
+  .hero p.lede{
+    font-size:1.15rem; max-width:520px; color:var(--parchment-dim); margin-bottom:34px;
+  }
+  .hero-ctas{display:flex; flex-wrap:wrap; gap:16px; align-items:center;}
+  .btn-primary{
+    background:linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+    color:var(--midnight);
+    padding:16px 32px;
+    border-radius:100px;
+    font-weight:800;
+    font-size:1rem;
+    box-shadow:0 12px 30px rgba(223,166,74,0.28);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 16px 36px rgba(223,166,74,0.4);}
+  .btn-ghost{
+    color:var(--parchment);
+    padding:16px 8px;
+    font-weight:700;
+    border-bottom:2px solid rgba(250,243,228,0.35);
+    transition:border-color .2s ease;
+  }
+  .btn-ghost:hover{border-color:var(--gold);}
+  .hero-note{margin-top:18px; font-size:0.85rem; color:rgba(250,243,228,0.55);}
+
+  /* floating book illustration */
+  .hero-book{position:relative; height:420px; display:flex; align-items:center; justify-content:center;}
+  .book-card{
+    position:relative;
+    width:320px; max-width:90%;
+    background:var(--parchment);
+    color:var(--ink);
+    border-radius:6px;
+    padding:34px 30px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.04);
+    transform:rotate(3deg);
+    animation:float 6s ease-in-out infinite;
+    animation-delay:.4s;
+  }
+  .book-card::before{
+    content:'';
+    position:absolute; left:0; top:8px; bottom:8px; width:10px;
+    background:linear-gradient(90deg, rgba(0,0,0,0.15), transparent);
+    border-radius:6px 0 0 6px;
+  }
+  .book-card .book-eyebrow{font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:800; color:var(--rose); margin-bottom:10px;}
+  .book-card h3{font-family:var(--font-display); font-size:1.3rem; margin-bottom:12px; font-weight:600;}
+  .book-card p{font-size:0.92rem; color:#4a3f2f;}
+  .book-card .book-stamp{
+    position:absolute; bottom:-14px; right:-14px;
+    width:64px; height:64px; border-radius:50%;
+    background:var(--rose); color:var(--parchment);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-size:0.7rem; text-align:center; line-height:1.1;
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+    transform:rotate(-8deg);
+  }
+
+  /* ---------- SECTION SHARED ---------- */
+  section{padding:110px 0;}
+  .section-head{max-width:640px; margin-bottom:64px;}
+  .section-head .eyebrow{color:var(--gold);}
+  .section-head h2{
+    font-family:var(--font-display); font-weight:600;
+    font-size:clamp(1.9rem, 2.6vw + 1rem, 2.9rem);
+    line-height:1.15; margin-bottom:16px;
+  }
+  .section-head p{color:var(--parchment-dim); font-size:1.05rem;}
+  .section-head.center{margin-left:auto; margin-right:auto; text-align:center;}
+
+  /* ---------- HOW IT WORKS (chapters) ---------- */
+  .chapters{background:var(--indigo);}
+  .chapter-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
+  .chapter{
+    background:var(--indigo-light);
+    border-radius:16px;
+    padding:36px 30px;
+    border:1px solid rgba(244,199,122,0.12);
+    transition:transform .25s ease, border-color .25s ease;
+  }
+  .chapter:hover{transform:translateY(-6px); border-color:rgba(244,199,122,0.4);}
+  .chapter .chnum{
+    font-family:var(--font-display); font-style:italic; font-weight:500;
+    color:var(--gold); font-size:0.95rem; margin-bottom:18px; display:block;
+  }
+  .chapter h3{font-family:var(--font-display); font-size:1.4rem; font-weight:600; margin-bottom:12px;}
+  .chapter p{color:var(--parchment-dim); font-size:0.96rem;}
+
+  /* ---------- INTERACTIVE PREVIEW (signature) ---------- */
+  .preview-section{background:var(--midnight); position:relative;}
+  .preview-layout{
+    display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; align-items:start;
+  }
+  .preview-controls{
+    background:var(--indigo);
+    border-radius:20px;
+    padding:34px;
+    border:1px solid rgba(244,199,122,0.14);
+  }
+  .field{margin-bottom:22px;}
+  .field label{
+    display:block; font-weight:800; font-size:0.82rem; letter-spacing:0.04em;
+    text-transform:uppercase; color:var(--lavender); margin-bottom:9px;
+  }
+  .field input, .field select{
+    width:100%; padding:13px 15px;
+    background:var(--indigo-light);
+    border:1px solid rgba(250,243,228,0.14);
+    border-radius:10px;
+    color:var(--parchment);
+    font-size:1rem;
+  }
+  .field input::placeholder{color:rgba(250,243,228,0.4);}
+  .field input:focus, .field select:focus{border-color:var(--gold);}
+  .preview-hint{font-size:0.85rem; color:rgba(250,243,228,0.55); margin-top:6px;}
+
+  .storybook{
+    background:var(--parchment);
+    color:var(--ink);
+    border-radius:14px;
+    padding:48px 44px;
+    position:relative;
+    box-shadow:0 30px 70px rgba(0,0,0,0.4);
+    min-height:380px;
+  }
+  .storybook::before{
+    content:'';
+    position:absolute; left:0; top:0; bottom:0; width:14px;
+    background:linear-gradient(90deg, rgba(0,0,0,0.18), transparent);
+    border-radius:14px 0 0 14px;
+  }
+  .storybook .page-label{
+    font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:800;
+    color:var(--rose); margin-bottom:14px;
+  }
+  .storybook h4{font-family:var(--font-display); font-weight:600; font-size:1.6rem; margin-bottom:18px;}
+  .storybook p{font-family:var(--font-display); font-size:1.12rem; line-height:1.75; color:#3a2f22;}
+  .storybook .story-name{color:var(--rose); font-weight:600; font-style:italic;}
+  .storybook .page-footer{
+    margin-top:26px; padding-top:18px; border-top:1px dashed rgba(42,33,24,0.25);
+    font-size:0.8rem; color:#7a6c56; display:flex; justify-content:space-between;
+  }
+
+  /* ---------- THEMES ---------- */
+  .themes{background:var(--indigo);}
+  .theme-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+  .theme-card{
+    background:var(--indigo-light);
+    border-radius:16px;
+    padding:28px 24px;
+    border:1px solid rgba(244,199,122,0.1);
+    transition:transform .25s ease, background .25s ease;
+  }
+  .theme-card:hover{transform:translateY(-4px); background:var(--indigo-lighter);}
+  .theme-icon{font-size:1.8rem; margin-bottom:14px;}
+  .theme-card h3{font-family:var(--font-display); font-size:1.2rem; margin-bottom:8px; font-weight:600;}
+  .theme-card p{font-size:0.92rem; color:var(--parchment-dim);}
+
+  /* ---------- PRICING ---------- */
+  .pricing{background:var(--midnight);}
+  .price-wrap{display:flex; justify-content:center;}
+  .price-card{
+    background:var(--parchment);
+    color:var(--ink);
+    border-radius:20px;
+    max-width:460px; width:100%;
+    padding:44px 40px;
+    position:relative;
+    box-shadow:0 30px 70px rgba(0,0,0,0.4);
+  }
+  .price-card .plate{
+    position:absolute; top:-16px; left:40px;
+    background:var(--rose); color:var(--parchment);
+    padding:8px 18px; border-radius:100px;
+    font-weight:800; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .price-card h3{font-family:var(--font-display); font-size:1.6rem; margin:14px 0 6px; font-weight:600;}
+  .price-card .amount{
+    font-family:var(--font-display); font-size:3.2rem; font-weight:600; margin:14px 0 4px;
+  }
+  .price-card .amount span{font-size:1rem; font-weight:700; color:#7a6c56;}
+  .price-card .desc{color:#5a4e3c; margin-bottom:26px; font-size:0.98rem;}
+  .price-list{margin-bottom:30px;}
+  .price-list li{
+    display:flex; align-items:flex-start; gap:10px;
+    padding:10px 0; border-top:1px dashed rgba(42,33,24,0.18);
+    font-size:0.95rem; color:#3a2f22;
+  }
+  .price-list li:first-child{border-top:none;}
+  .price-list li::before{content:'✦'; color:var(--rose); flex-shrink:0; margin-top:2px;}
+  .price-card .btn-primary{width:100%; text-align:center; display:block;}
+
+  /* ---------- TESTIMONIALS ---------- */
+  .testimonials{background:var(--indigo);}
+  .testi-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+  .testi-card{
+    background:var(--parchment); color:var(--ink);
+    border-radius:12px; padding:30px 26px;
+    transform:rotate(-1.2deg);
+    box-shadow:0 18px 40px rgba(0,0,0,0.3);
+  }
+  .testi-card:nth-child(2){transform:rotate(1deg);}
+  .testi-card:nth-child(3){transform:rotate(-0.6deg);}
+  .testi-card p.quote{font-family:var(--font-display); font-style:italic; font-size:1.02rem; margin-bottom:16px; color:#3a2f22;}
+  .testi-card .who{font-weight:800; font-size:0.85rem; color:#7a6c56;}
+
+  /* ---------- SIGNUP ---------- */
+  .signup{background:radial-gradient(ellipse at 80% 20%, #16264a 0%, var(--midnight) 60%);}
+  .signup-layout{
+    display:grid; grid-template-columns:0.9fr 1.1fr; gap:56px; align-items:center;
+  }
+  .signup-copy h2{font-family:var(--font-display); font-size:clamp(1.9rem,2.6vw+1rem,2.9rem); font-weight:600; margin-bottom:18px;}
+  .signup-copy p{color:var(--parchment-dim); font-size:1.05rem; margin-bottom:14px;}
+  .signup-copy ul{margin-top:20px;}
+  .signup-copy li{padding:8px 0; font-size:0.95rem; display:flex; gap:10px;}
+  .signup-copy li::before{content:'✦'; color:var(--gold);}
+
+  .signup-card{
+    background:var(--parchment); color:var(--ink);
+    border-radius:20px; padding:40px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.4);
+  }
+  .signup-card .dedication{
+    font-family:var(--font-display); font-style:italic; text-align:center;
+    color:var(--rose); font-size:1.1rem; margin-bottom:26px;
+  }
+  .signup-card .field label{color:#7a6c56;}
+  .signup-card .field input, .signup-card .field select{
+    background:#fffdf8; border:1px solid rgba(42,33,24,0.18); color:var(--ink);
+  }
+  .signup-card .field input:focus, .signup-card .field select:focus{border-color:var(--rose);}
+  .signup-card .btn-primary{width:100%; text-align:center; margin-top:8px;}
+  .form-msg{
+    margin-top:16px; padding:14px 16px; border-radius:10px;
+    background:#e9f4ec; color:#2c5e3f; font-weight:700; font-size:0.92rem;
+    display:none;
+  }
+  .form-msg.show{display:block;}
+
+  /* ---------- FOOTER ---------- */
+  footer{background:var(--midnight); padding:56px 0 36px; border-top:1px solid rgba(250,243,228,0.08);}
+  .footer-grid{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;}
+  .footer-links{display:flex; gap:26px; font-size:0.9rem; color:var(--parchment-dim);}
+  .footer-links a:hover{color:var(--gold);}
+  .footer-bottom{margin-top:30px; font-size:0.82rem; color:rgba(250,243,228,0.4); text-align:center;}
+
+  /* reveal-on-scroll */
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px){
+    .hero-grid, .preview-layout, .signup-layout{grid-template-columns:1fr;}
+    .hero-book{height:auto; margin-top:20px;}
+    .chapter-grid, .theme-grid, .testi-grid{grid-template-columns:1fr 1fr;}
+    .nav-links{display:none;}
+  }
+  @media (max-width: 600px){
+    section{padding:76px 0;}
+    .chapter-grid, .theme-grid, .testi-grid{grid-template-columns:1fr;}
+    .price-card{padding:32px 26px;}
+    .signup-card{padding:28px 22px;}
+    .book-card{transform:rotate(0);}
+  }
+</style>
+</head>
+<body>
+
+<header id="siteHeader">
+  <div class="wrap">
+    <nav>
+      <a href="#top" class="logo">
+        <svg class="logo-mark" viewBox="0 0 24 24" fill="none"><path d="M20 12.6A8.4 8.4 0 1 1 11.4 4a6.6 6.6 0 1 0 8.6 8.6Z" fill="#f4c77a"/></svg>
+        StarryTales
+      </a>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#preview">See a story</a>
+        <a href="#themes">Themes</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#signup" class="nav-cta">Start free trial</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="starfield" id="starfield"></div>
+    <svg class="moon" viewBox="0 0 100 100" fill="none">
+      <defs>
+        <mask id="crescentMask">
+          <rect x="0" y="0" width="100" height="100" fill="white"/>
+          <circle cx="60" cy="38" r="34" fill="black"/>
+        </mask>
+        <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff3d6"/>
+          <stop offset="100%" stop-color="#f4c77a"/>
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="38" fill="url(#moonGlow)" mask="url(#crescentMask)"/>
+      <circle cx="34" cy="40" r="3.4" fill="#dfa64a" opacity="0.55" mask="url(#crescentMask)"/>
+      <circle cx="26" cy="58" r="2.2" fill="#dfa64a" opacity="0.45" mask="url(#crescentMask)"/>
+      <circle cx="38" cy="66" r="1.6" fill="#dfa64a" opacity="0.4" mask="url(#crescentMask)"/>
+    </svg>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">A subscription for sleepy little dreamers</span>
+        <h1>Tonight's story stars <em>your child.</em><br>Every single night.</h1>
+        <p class="lede">StarryTales writes a brand-new, one-of-a-kind bedtime story around your child — their name, their favorite kind of adventure — and delivers it straight to your inbox at 6:30&nbsp;PM, right on cue for wind-down time.</p>
+        <div class="hero-ctas">
+          <a href="#signup" class="btn-primary">Start your free trial</a>
+          <a href="#preview" class="btn-ghost">Read a sample story →</a>
+        </div>
+        <p class="hero-note">No app download required — stories arrive by email. Cancel anytime.</p>
+      </div>
+      <div class="hero-book">
+        <div class="book-card">
+          <span class="book-eyebrow">Tonight's chapter</span>
+          <h3>Wren and the Whispering Wood</h3>
+          <p>"Wren tightened her cloak and stepped into the glow of a thousand fireflies, ready to find the lantern that would light the way home..."</p>
+          <div class="book-stamp">6:30<br>PM</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="chapters" id="how">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">How it works</span>
+        <h2>Three chapters to bedtime magic</h2>
+        <p>Getting started takes less time than picking out pajamas.</p>
+      </div>
+      <div class="chapter-grid">
+        <div class="chapter reveal">
+          <span class="chnum">Chapter One</span>
+          <h3>Tell us about your child</h3>
+          <p>Share their name and a story style they love — brave adventures, fairy tale kingdoms, outer space, and more.</p>
+        </div>
+        <div class="chapter reveal">
+          <span class="chnum">Chapter Two</span>
+          <h3>We write tonight's tale</h3>
+          <p>Every story is freshly written for your child alone — no reruns, no reused plots. They're always the hero.</p>
+        </div>
+        <div class="chapter reveal">
+          <span class="chnum">Chapter Three</span>
+          <h3>It lands at 6:30 PM</h3>
+          <p>A new story arrives by email right on schedule, ready to read together as part of the bedtime routine.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE PREVIEW -->
+  <section class="preview-section" id="preview">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Try it yourself</span>
+        <h2>See your child become the hero</h2>
+        <p>Type a name and pick a theme — watch tonight's story take shape in real time.</p>
+      </div>
+      <div class="preview-layout">
+        <div class="preview-controls reveal">
+          <div class="field">
+            <label for="previewName">Child's name</label>
+            <input type="text" id="previewName" placeholder="e.g. Amara" maxlength="20">
+          </div>
+          <div class="field">
+            <label for="previewTheme">Story theme</label>
+            <select id="previewTheme">
+              <option value="adventure">Brave Adventure</option>
+              <option value="fantasy">Fantasy Kingdom</option>
+              <option value="space">Outer Space</option>
+              <option value="underwater">Underwater World</option>
+              <option value="animals">Animal Friends</option>
+              <option value="fairytale">Classic Fairy Tale</option>
+            </select>
+          </div>
+          <p class="preview-hint">This is just a taste — every real StarryTales story is a full, unique tale written fresh each night.</p>
+        </div>
+        <div class="storybook reveal">
+          <span class="page-label">Preview page</span>
+          <h4 id="previewTitle">Wren and the Whispering Wood</h4>
+          <p id="previewText">
+            As the stars blinked awake one by one, <span class="story-name" id="previewNameOut">Wren</span> tightened a cloak of soft green moss and stepped into the glow of a thousand fireflies. Somewhere deep in the whispering wood waited a lantern that could light the way home — and only <span class="story-name" id="previewNameOut2">Wren</span> was brave enough to find it.
+          </p>
+          <div class="page-footer">
+            <span>Page 1 of 6</span>
+            <span>Delivered nightly at 6:30 PM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THEMES -->
+  <section class="themes" id="themes">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Story worlds</span>
+        <h2>Pick a favorite. Switch anytime.</h2>
+        <p>Every theme below can be selected at sign-up and changed later as your child's tastes grow.</p>
+      </div>
+      <div class="theme-grid">
+        <div class="theme-card reveal"><div class="theme-icon">🗺️</div><h3>Brave Adventure</h3><p>Quests, hidden maps, and courage put to the test.</p></div>
+        <div class="theme-card reveal"><div class="theme-icon">🏰</div><h3>Fantasy Kingdom</h3><p>Castles, gentle dragons, and kind rulers-to-be.</p></div>
+        <div class="theme-card reveal"><div class="theme-icon">🚀</div><h3>Outer Space</h3><p>Rocket ships, new planets, and starlit friendships.</p></div>
+        <div class="theme-card reveal"><div class="theme-icon">🐠</div><h3>Underwater World</h3><p>Coral cities, curious creatures, and gentle tides.</p></div>
+        <div class="theme-card reveal"><div class="theme-icon">🦊</div><h3>Animal Friends</h3><p>Woodland pals, talking critters, cozy dens.</p></div>
+        <div class="theme-card reveal"><div class="theme-icon">🕯️</div><h3>Classic Fairy Tale</h3><p>Timeless magic with your child written into the tale.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <div class="wrap">
+      <div class="section-head center reveal" style="margin-left:auto;margin-right:auto;">
+        <span class="eyebrow">Membership</span>
+        <h2>One story. Every night. One simple plan.</h2>
+        <p>No tiers to compare — just a nightly story, delivered like clockwork.</p>
+      </div>
+      <div class="price-wrap reveal">
+        <div class="price-card">
+          <span class="plate">Most loved</span>
+          <h3>The Nightly Tale</h3>
+          <p class="amount">$9.99<span>/month</span></p>
+          <p class="desc">Billed monthly. Cancel anytime, no questions asked.</p>
+          <ul class="price-list">
+            <li>One brand-new personalized story every night</li>
+            <li>Delivered by email at 6:30 PM, your time</li>
+            <li>Your child as the story's main character</li>
+            <li>Choose from six story themes, switch whenever</li>
+            <li>Full archive of past stories to revisit</li>
+          </ul>
+          <a href="#signup" class="btn-primary">Start free trial</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">From other parents</span>
+        <h2>A calmer bedtime, one story at a time</h2>
+      </div>
+      <div class="testi-grid">
+        <div class="testi-card reveal">
+          <p class="quote">"My daughter cannot wait to hear her new adventure— every night at 6:30 sharp."</p>
+          <p class="who">Parent of a 6-year-old</p>
+        </div>
+        <div class="testi-card reveal">
+          <p class="quote">"It's become the calmest part of our whole day. He asks to be a 'space explorer' every week now."</p>
+          <p class="who">Parent of a 4-year-old</p>
+        </div>
+        <div class="testi-card reveal">
+          <p class="quote">"We print our favorites and keep them in a binder. It's basically her own storybook now."</p>
+          <p class="who">Parent of twins, age 5</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIGNUP -->
+  <section class="signup" id="signup">
+    <div class="wrap signup-layout">
+      <div class="signup-copy reveal">
+        <span class="eyebrow">Begin the story</span>
+        <h2>Tonight's tale starts here</h2>
+        <p>Fill in a few details and your child's first story will be ready for their next bedtime, delivered right at 6:30 PM.</p>
+        <ul>
+          <li>Takes under a minute to set up</li>
+          <li>First story included in your free trial</li>
+          <li>Change themes or pause delivery anytime</li>
+        </ul>
+      </div>
+      <div class="signup-card reveal">
+        <p class="dedication">"This story belongs to..."</p>
+        <form id="signupForm" novalidate>
+          <div class="field">
+            <label for="childName">Child's name</label>
+            <input type="text" id="childName" name="childName" placeholder="e.g. Theo" required maxlength="30">
+          </div>
+          <div class="field">
+            <label for="parentEmail">Parent's email address</label>
+            <input type="email" id="parentEmail" name="parentEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="parentPassword">Create a password</label>
+            <input type="password" id="parentPassword" name="parentPassword" placeholder="At least 8 characters" required minlength="8">
+          </div>
+          <div class="field">
+            <label for="storyType">Preferred story type</label>
+            <select id="storyType" name="storyType" required>
+              <option value="" disabled selected>Choose a theme</option>
+              <option value="adventure">Brave Adventure</option>
+              <option value="fantasy">Fantasy Kingdom</option>
+              <option value="space">Outer Space</option>
+              <option value="underwater">Underwater World</option>
+              <option value="animals">Animal Friends</option>
+              <option value="fairytale">Classic Fairy Tale</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Start free trial</button>
+          <div class="form-msg" id="formMsg"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <a href="#top" class="logo">
+        <svg class="logo-mark" viewBox="0 0 24 24" fill="none"><path d="M20 12.6A8.4 8.4 0 1 1 11.4 4a6.6 6.6 0 1 0 8.6 8.6Z" fill="#f4c77a"/></svg>
+        StarryTales
+      </a>
+      <div class="footer-links">
+        <a href="#how">How it works</a>
+        <a href="#themes">Themes</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#signup">Sign up</a>
+      </div>
+    </div>
+    <p class="footer-bottom">© 2026 StarryTales. A new story, every night, just for them.</p>
+  </div>
+</footer>
+
+<script>
+  // Header scroll state
+  const header = document.getElementById('siteHeader');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Starfield generation
+  const starfield = document.getElementById('starfield');
+  const STAR_COUNT = 70;
+  for (let i = 0; i < STAR_COUNT; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.4 + 1;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.animationDelay = (Math.random() * 3.5) + 's';
+    s.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+    starfield.appendChild(s);
+  }
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+
+  // Interactive story preview
+  const templates = {
+    adventure: {
+      title: (n) => `${n} and the Whispering Wood`,
+      text: (n) => `As the stars blinked awake one by one, <span class="story-name">${n}</span> tightened a cloak of soft green moss and stepped into the glow of a thousand fireflies. Somewhere deep in the whispering wood waited a lantern that could light the way home — and only <span class="story-name">${n}</span> was brave enough to find it.`
+    },
+    fantasy: {
+      title: (n) => `${n} and the Sleeping Kingdom`,
+      text: (n) => `High above the clouds stood a castle that hadn't opened its gates in a hundred years. When the old drawbridge creaked down at midnight, <span class="story-name">${n}</span> was the only one who heard it — and the only one brave enough to wake the kingdom inside.`
+    },
+    space: {
+      title: (n) => `${n} and the Last Star`,
+      text: (n) => `The little rocket ship hummed softly as it drifted past sleeping planets. <span class="story-name">${n}</span> pressed a hand to the window, watching a star flicker out in the distance — and knew tonight's mission was to help it shine again.`
+    },
+    underwater: {
+      title: (n) => `${n} and the Coral City`,
+      text: (n) => `Bubbles rose like silver lanterns as <span class="story-name">${n}</span> swam past glowing reefs toward a city built entirely of coral. The gentle whale who guarded its gates had been waiting all week for a visitor brave enough to knock.`
+    },
+    animals: {
+      title: (n) => `${n} and the Forest Council`,
+      text: (n) => `Deep in the old pine forest, the animals were holding their once-a-year council — and for the first time ever, they'd invited a human. <span class="story-name">${n}</span> tiptoed past sleepy foxes and curious owls to take the seat of honor.`
+    },
+    fairytale: {
+      title: (n) => `${n} and the Golden Thread`,
+      text: (n) => `Once upon a time, in a village at the edge of an enchanted valley, a single golden thread appeared on <span class="story-name">${n}</span>'s windowsill. Follow it, and it was said to lead straight into the heart of a story only just beginning.`
+    }
+  };
+
+  function safeName(raw) {
+    const trimmed = raw.trim();
+    return trimmed.length ? trimmed.replace(/</g, '').replace(/>/g, '') : 'Wren';
+  }
+
+  function updatePreview() {
+    const nameInput = document.getElementById('previewName').value;
+    const theme = document.getElementById('previewTheme').value;
+    const name = safeName(nameInput);
+    const t = templates[theme] || templates.adventure;
+    document.getElementById('previewTitle').textContent = t.title(name);
+    document.getElementById('previewText').innerHTML = t.text(name);
+  }
+
+  document.getElementById('previewName').addEventListener('input', updatePreview);
+  document.getElementById('previewTheme').addEventListener('change', updatePreview);
+
+  // Signup form — creates a real account, adds the child, then sends the
+  // parent to checkout to start the $9.99/month subscription.
+  const API_BASE = window.location.origin;
+  const form = document.getElementById('signupForm');
+  const formMsg = document.getElementById('formMsg');
+
+  function showFormMsg(text, isError) {
+    formMsg.textContent = text;
+    formMsg.style.background = isError ? '#fbeaea' : '#e9f4ec';
+    formMsg.style.color = isError ? '#8a2f2f' : '#2c5e3f';
+    formMsg.classList.add('show');
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const childName = document.getElementById('childName').value.trim();
+    const parentEmail = document.getElementById('parentEmail').value.trim();
+    const password = document.getElementById('parentPassword').value;
+    const storyType = document.getElementById('storyType').value;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!childName || !emailPattern.test(parentEmail) || !storyType || password.length < 8) {
+      showFormMsg("Please fill in your child's name, a valid email, an 8+ character password, and a story theme.", true);
+      return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Setting things up...';
+
+    try {
+      // 1. Create the parent account
+      const signupRes = await fetch(`${API_BASE}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parentEmail,
+          password,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
+      });
+      const signupData = await signupRes.json();
+      if (!signupRes.ok) throw new Error(signupData.error || 'Could not create your account.');
+
+      const token = signupData.token;
+      localStorage.setItem('starrytales_token', token);
+
+      // 2. Add the child
+      const childRes = await fetch(`${API_BASE}/api/children`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: childName, storyTheme: storyType }),
+      });
+      const childData = await childRes.json();
+      if (!childRes.ok) throw new Error(childData.error || 'Could not save your child.');
+
+      // 3. Send the parent to Stripe Checkout to start the $9.99/mo plan
+      const checkoutRes = await fetch(`${API_BASE}/api/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      const checkoutData = await checkoutRes.json();
+      if (!checkoutRes.ok || !checkoutData.url) throw new Error('Could not start checkout.');
+
+      showFormMsg(`Account created! Redirecting you to set up billing for ${childName}'s stories...`, false);
+      window.location.href = checkoutData.url;
+    } catch (err) {
+      showFormMsg(err.message || 'Something went wrong. Please try again.', true);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Start free trial';
+    }
+  });
+</script>
+
+</body>
+</html>

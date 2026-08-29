@@ -1,0 +1,57 @@
+:root{
+  --midnight:#0c1526;
+  --indigo:#1b2a4e;
+  --indigo-light:#28396a;
+  --gold:#f4c77a;
+  --gold-deep:#dfa64a;
+  --lavender:#c9b8e8;
+  --parchment:#faf3e4;
+  --rose:#e8927a;
+  --ink:#2a2118;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100vh;
+  background:radial-gradient(ellipse at 20% 0%, #16264a 0%, var(--midnight) 60%);
+  font-family:'Nunito', system-ui, sans-serif;
+  color:var(--parchment);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.card{
+  width:100%; max-width:440px;
+  background:var(--parchment); color:var(--ink);
+  border-radius:18px; padding:38px 34px;
+  box-shadow:0 30px 70px rgba(0,0,0,0.4);
+}
+.wide{max-width:760px;}
+h1{font-family:Georgia, serif; font-size:1.7rem; margin:0 0 6px;}
+.sub{color:#7a6c56; font-size:0.95rem; margin-bottom:26px;}
+label{display:block; font-weight:800; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; color:#7a6c56; margin-bottom:8px;}
+input, select{
+  width:100%; padding:12px 14px; margin-bottom:18px;
+  border:1px solid rgba(42,33,24,0.18); border-radius:10px;
+  font-size:1rem; background:#fffdf8; color:var(--ink);
+}
+button, .btn{
+  display:inline-block; width:100%; text-align:center;
+  background:linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+  color:var(--midnight); font-weight:800; border:none; border-radius:100px;
+  padding:14px 20px; font-size:1rem; cursor:pointer; text-decoration:none;
+}
+button.secondary, .btn.secondary{background:var(--indigo-light); color:var(--parchment);}
+.msg{margin-top:14px; padding:12px 14px; border-radius:10px; font-size:0.9rem; font-weight:700; display:none;}
+.msg.show{display:block;}
+.msg.error{background:#fbeaea; color:#8a2f2f;}
+.msg.success{background:#e9f4ec; color:#2c5e3f;}
+.foot-link{display:block; text-align:center; margin-top:16px; font-size:0.9rem; color:#7a6c56;}
+.foot-link a{color:var(--rose); font-weight:800; text-decoration:none;}
+
+.child-row{
+  border:1px solid rgba(42,33,24,0.14); border-radius:12px; padding:18px;
+  margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.child-row .meta{font-size:0.85rem; color:#7a6c56;}
+.pill{font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:100px; background:var(--indigo-light); color:var(--parchment);}
+.row-actions{display:flex; gap:10px; align-items:center;}
+.row-actions select{width:auto; margin:0;}
+.row-actions button{width:auto; padding:9px 16px; font-size:0.85rem;}
