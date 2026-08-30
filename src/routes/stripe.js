@@ -25,6 +25,7 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
+      payment_method_types: ['card'],
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }], // the $7.99/mo Price created in Stripe dashboard
       success_url: `${process.env.APP_URL}/dashboard.html?checkout=success`,
       cancel_url: `${process.env.APP_URL}/dashboard.html?checkout=cancelled`,
