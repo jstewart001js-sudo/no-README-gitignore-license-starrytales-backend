@@ -36,7 +36,7 @@ npm run db:migrate
 ## 3. Set up Stripe
 
 1. Create a Stripe account, then in the Dashboard create a **Product** called
-   "StarryTales Nightly Tale" with a recurring **Price** of $9.99/month.
+   "StarryTales Nightly Tale" with a recurring **Price** of $7.99/month.
    Copy that Price ID into `STRIPE_PRICE_ID` in `.env`.
 2. Copy your API secret key into `STRIPE_SECRET_KEY`.
 3. For local testing, install the [Stripe CLI](https://stripe.com/docs/stripe-cli)

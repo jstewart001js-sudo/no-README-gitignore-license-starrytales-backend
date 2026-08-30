@@ -564,7 +564,7 @@
         <div class="price-card">
           <span class="plate">Most loved</span>
           <h3>The Nightly Tale</h3>
-          <p class="amount">$9.99<span>/month</span></p>
+          <p class="amount">$7.99<span>/month</span></p>
           <p class="desc">Billed monthly. Cancel anytime, no questions asked.</p>
           <ul class="price-list">
             <li>One brand-new personalized story every night</li>
@@ -751,7 +751,7 @@
   document.getElementById('previewTheme').addEventListener('change', updatePreview);
 
   // Signup form — creates a real account, adds the child, then sends the
-  // parent to checkout to start the $9.99/month subscription.
+  // parent to checkout to start the $7.99/month subscription.
   const API_BASE = window.location.origin;
   const form = document.getElementById('signupForm');
   const formMsg = document.getElementById('formMsg');
@@ -806,7 +806,7 @@
       const childData = await childRes.json();
       if (!childRes.ok) throw new Error(childData.error || 'Could not save your child.');
 
-      // 3. Send the parent to Stripe Checkout to start the $9.99/mo plan
+      // 3. Send the parent to Stripe Checkout to start the $7.99/mo plan
       const checkoutRes = await fetch(`${API_BASE}/api/stripe/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
