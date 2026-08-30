@@ -1,7 +1,15 @@
 require('dotenv').config();
 const Anthropic = require('@anthropic-ai/sdk');
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  // Required when ANTHROPIC_API_KEY is an identity-linked key (tied to a user
+  // login rather than a single workspace) — tells the API which workspace's
+  // billing/rate limits this request should count against.
+  defaultHeaders: process.env.ANTHROPIC_WORKSPACE_ID
+    ? { 'anthropic-workspace-id': process.env.ANTHROPIC_WORKSPACE_ID }
+    : undefined,
+});
 
 // Keep these in sync with the theme options on the sign-up form / dashboard.
 const THEME_PROMPTS = {
