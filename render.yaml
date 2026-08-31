@@ -1,6 +1,6 @@
 databases:
   - name: starrytales-db
-    plan: free
+    plan: 0.1c-256mb
     postgresMajorVersion: "16"
 
 services:
