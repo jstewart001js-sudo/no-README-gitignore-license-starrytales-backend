@@ -7,7 +7,7 @@ services:
   - type: web
     name: starrytales-backend
     runtime: node
-    plan: 0.5c-512mb
+    plan: pro
     region: oregon
     branch: main
     buildCommand: npm install
