@@ -39,6 +39,9 @@ function renderChildren(children) {
   }
 
   children.forEach((child) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'child-block';
+
     const row = document.createElement('div');
     row.className = 'child-row';
     row.innerHTML = `
@@ -55,9 +58,18 @@ function renderChildren(children) {
         <button data-child-id="${child.id}" data-active="${child.active}" class="toggle-active secondary">
           ${child.active ? 'Pause' : 'Resume'}
         </button>
+        <button data-child-id="${child.id}" class="view-stories secondary">View stories</button>
       </div>
     `;
-    container.appendChild(row);
+    wrapper.appendChild(row);
+
+    const storyList = document.createElement('div');
+    storyList.className = 'story-list';
+    storyList.id = `stories-${child.id}`;
+    storyList.hidden = true;
+    wrapper.appendChild(storyList);
+
+    container.appendChild(wrapper);
   });
 
   container.querySelectorAll('.theme-select').forEach((select) => {
@@ -71,6 +83,71 @@ function renderChildren(children) {
       const isActive = e.target.dataset.active === 'true';
       await updateChild(e.target.dataset.childId, { active: !isActive });
       loadChildren();
+    });
+  });
+
+  container.querySelectorAll('.view-stories').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const childId = e.target.dataset.childId;
+      const listEl = document.getElementById(`stories-${childId}`);
+      const wasHidden = listEl.hidden;
+      listEl.hidden = !wasHidden;
+      e.target.textContent = wasHidden ? 'Hide stories' : 'View stories';
+      if (wasHidden && !listEl.dataset.loaded) {
+        await loadStories(childId, listEl);
+        listEl.dataset.loaded = 'true';
+      }
+    });
+  });
+}
+
+async function loadStories(childId, container) {
+  container.innerHTML = '<p class="story-empty">Loading stories...</p>';
+
+  const res = await fetch(`${API_BASE}/api/children/${childId}/stories`, { headers: authHeaders() });
+  if (!res.ok) {
+    container.innerHTML = '<p class="story-empty">Could not load stories right now.</p>';
+    return;
+  }
+
+  const stories = await res.json();
+  if (stories.length === 0) {
+    container.innerHTML = '<p class="story-empty">No stories yet — the first one arrives at 6:30 PM once a subscription is active.</p>';
+    return;
+  }
+
+  const statusInfo = {
+    sent: { label: 'Sent', className: 'pill-sent' },
+    failed: { label: 'Failed', className: 'pill-failed' },
+    pending: { label: 'Pending', className: 'pill-pending' },
+  };
+
+  container.innerHTML = stories
+    .map((story) => {
+      const date = new Date(story.created_at).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      const status = statusInfo[story.delivery_status] || statusInfo.pending;
+      return `
+        <div class="story-item">
+          <div class="story-item-head">
+            <div>
+              <h3>${escapeHtml(story.title)}</h3>
+              <span class="story-date">${date}</span>
+            </div>
+            <span class="pill ${status.className}">${status.label}</span>
+          </div>
+          <div class="story-body">${escapeHtml(story.body).replace(/\n/g, '<br>')}</div>
+        </div>
+      `;
+    })
+    .join('');
+
+  container.querySelectorAll('.story-item-head').forEach((head) => {
+    head.addEventListener('click', () => {
+      head.nextElementSibling.classList.toggle('show');
     });
   });
 }
