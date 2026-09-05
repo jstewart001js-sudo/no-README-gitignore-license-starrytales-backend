@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { syncSubscriptionQuantity } = require('../services/subscriptionSync');
 
 const router = express.Router();
 const VALID_THEMES = ['adventure', 'fantasy', 'space', 'underwater', 'animals', 'fairytale'];
@@ -27,6 +28,15 @@ router.post('/', async (req, res) => {
       [req.userId, name.trim(), storyTheme]
     );
     res.status(201).json(result.rows[0]);
+
+    // Pricing is per active child -- bump the Stripe subscription quantity
+    // if one already exists. Runs after responding so a Stripe hiccup never
+    // blocks adding the child.
+    try {
+      await syncSubscriptionQuantity(req.userId);
+    } catch (syncErr) {
+      console.error('Subscription quantity sync error (add child)', syncErr);
+    }
   } catch (err) {
     console.error('Create child error', err);
     res.status(500).json({ error: 'Could not save your child right now.' });
@@ -76,6 +86,17 @@ router.patch('/:id', async (req, res) => {
       [name?.trim() || null, storyTheme || null, active === undefined ? null : active, id]
     );
     res.json(result.rows[0]);
+
+    // Pricing is per active child -- pausing/resuming changes the billed
+    // quantity. Runs after responding so a Stripe hiccup never blocks the
+    // toggle itself.
+    if (active !== undefined) {
+      try {
+        await syncSubscriptionQuantity(req.userId);
+      } catch (syncErr) {
+        console.error('Subscription quantity sync error (toggle active)', syncErr);
+      }
+    }
   } catch (err) {
     console.error('Update child error', err);
     res.status(500).json({ error: 'Could not update your child right now.' });

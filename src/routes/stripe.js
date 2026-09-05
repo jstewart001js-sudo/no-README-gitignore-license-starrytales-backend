@@ -8,7 +8,8 @@ const router = express.Router();
 
 // POST /api/stripe/create-checkout-session
 // Protected. Creates (or reuses) a Stripe customer for the logged-in parent,
-// then returns a Checkout URL for the $7.99/month plan.
+// then returns a Checkout URL for the $7.99/month-per-child plan, billed for
+// however many active children they currently have (minimum 1).
 router.post('/create-checkout-session', requireAuth, async (req, res) => {
   try {
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [req.userId]);
@@ -22,11 +23,17 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
       await pool.query('UPDATE users SET stripe_customer_id = $1 WHERE id = $2', [customerId, user.id]);
     }
 
+    const childCountResult = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM children WHERE user_id = $1 AND active = true',
+      [user.id]
+    );
+    const quantity = Math.max(childCountResult.rows[0].count, 1);
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       payment_method_types: ['card'],
-      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }], // the $7.99/mo Price created in Stripe dashboard
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity }], // $7.99/mo per active child
       subscription_data: { trial_period_days: 7 },
       success_url: `${process.env.APP_URL}/dashboard.html?checkout=success`,
       cancel_url: `${process.env.APP_URL}/dashboard.html?checkout=cancelled`,
