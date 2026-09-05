@@ -27,6 +27,7 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }], // the $7.99/mo Price created in Stripe dashboard
+      subscription_data: { trial_period_days: 7 },
       success_url: `${process.env.APP_URL}/dashboard.html?checkout=success`,
       cancel_url: `${process.env.APP_URL}/dashboard.html?checkout=cancelled`,
     });

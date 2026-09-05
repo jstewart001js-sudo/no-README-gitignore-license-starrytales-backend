@@ -8,8 +8,9 @@ const TARGET_HOUR = 18; // 6 PM
 const TARGET_MINUTE = 30; // :30 -> 6:30 PM local time
 
 /**
- * Runs every 15 minutes. For each active, paying subscriber whose LOCAL time
- * currently matches 6:30 PM, generates tonight's story and emails it.
+ * Runs every 15 minutes. For each subscriber with an active or trialing
+ * subscription whose LOCAL time currently matches 6:30 PM, generates
+ * tonight's story and emails it.
  * A subscriber only ever gets processed once per calendar day, tracked via
  * the `stories.created_at` date check below.
  */
@@ -24,7 +25,7 @@ async function runDeliveryTick() {
       JOIN users u ON u.id = c.user_id
       JOIN subscriptions s ON s.user_id = u.id
       WHERE c.active = true
-        AND s.status = 'active'
+        AND s.status IN ('active', 'trialing')
     `);
   } catch (err) {
     console.error('Scheduler: failed to load candidates', err);
