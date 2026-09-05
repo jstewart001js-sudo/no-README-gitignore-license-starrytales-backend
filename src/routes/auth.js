@@ -1,7 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const pool = require('../../db/pool');
+const { sendPasswordResetEmail } = require('../services/email');
 
 const router = express.Router();
 const SALT_ROUNDS = 12;
@@ -73,6 +75,81 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error', err);
     res.status(500).json({ error: 'Something went wrong logging you in.' });
+  }
+});
+
+// POST /api/auth/forgot-password
+// Body: { parentEmail }
+// Always responds the same way whether or not the account exists, so this
+// endpoint can't be used to check which emails are registered.
+router.post('/forgot-password', async (req, res) => {
+  const { parentEmail } = req.body;
+
+  if (!parentEmail) {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+
+  try {
+    const result = await pool.query('SELECT id FROM users WHERE parent_email = $1', [parentEmail]);
+    const user = result.rows[0];
+
+    if (user) {
+      const token = crypto.randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      await pool.query(
+        'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+        [token, expires, user.id]
+      );
+
+      const resetUrl = `${process.env.APP_URL}/reset-password.html?token=${token}`;
+      try {
+        await sendPasswordResetEmail(parentEmail, resetUrl);
+      } catch (emailErr) {
+        console.error('Password reset email send error', emailErr);
+      }
+    }
+
+    res.json({ ok: true, message: 'If an account exists for that email, a reset link has been sent.' });
+  } catch (err) {
+    console.error('Forgot password error', err);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// POST /api/auth/reset-password
+// Body: { token, password }
+router.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: 'Missing token or password.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT id, reset_token_expires FROM users WHERE reset_token = $1',
+      [token]
+    );
+    const user = result.rows[0];
+
+    if (!user || !user.reset_token_expires || new Date(user.reset_token_expires) < new Date()) {
+      return res.status(400).json({ error: 'This reset link is invalid or has expired.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    await pool.query(
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      [passwordHash, user.id]
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Reset password error', err);
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 });
 

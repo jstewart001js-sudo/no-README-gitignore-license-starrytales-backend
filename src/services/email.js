@@ -71,4 +71,31 @@ async function sendWaitlistNotification(email) {
   return data;
 }
 
-module.exports = { sendStoryEmail, sendWaitlistNotification };
+/**
+ * Sends a password reset link to a parent's inbox.
+ * @param {string} toEmail - the account's email address
+ * @param {string} resetUrl - link to reset-password.html with the token
+ */
+async function sendPasswordResetEmail(toEmail, resetUrl) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: 'Reset your StarryTales password',
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">Reset your password</h1>
+        <p style="color:#3a2f22; line-height:1.6; margin:0 0 20px;">We received a request to reset your StarryTales password. This link expires in 1 hour.</p>
+        <p style="margin:0 0 20px;"><a href="${resetUrl}" style="background:#f4c77a; color:#0c1526; padding:12px 24px; border-radius:100px; text-decoration:none; font-weight:bold;">Reset password</a></p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">If you didn't request this, you can safely ignore this email.</p>
+      </div>
+    </div>`,
+  });
+
+  if (error) {
+    throw new Error(`Password reset email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
+module.exports = { sendStoryEmail, sendWaitlistNotification, sendPasswordResetEmail };

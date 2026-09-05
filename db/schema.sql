@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash       VARCHAR(255) NOT NULL,
   timezone            VARCHAR(64) NOT NULL DEFAULT 'America/New_York', -- IANA tz name
   stripe_customer_id  VARCHAR(255) UNIQUE,
+  reset_token         VARCHAR(255),
+  reset_token_expires TIMESTAMPTZ,
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
