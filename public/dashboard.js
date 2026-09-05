@@ -193,23 +193,53 @@ document.getElementById('addChildForm').addEventListener('submit', async (e) => 
 });
 
 // Billing
-document.getElementById('startTrialBtn').addEventListener('click', async () => {
-  const res = await fetch(`${API_BASE}/api/stripe/create-checkout-session`, {
-    method: 'POST',
-    headers: authHeaders(),
-  });
-  const data = await res.json();
-  if (data.url) window.location.href = data.url;
+const billingMsg = document.getElementById('billingMsg');
+
+function showBillingMsg(text, isError) {
+  billingMsg.textContent = text;
+  billingMsg.className = 'msg show ' + (isError ? 'error' : 'success');
+}
+
+document.getElementById('startTrialBtn').addEventListener('click', async (e) => {
+  const btn = e.target;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Starting checkout...';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/stripe/create-checkout-session`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.');
+    window.location.href = data.url;
+  } catch (err) {
+    showBillingMsg(err.message, true);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 });
 
-document.getElementById('manageBillingBtn').addEventListener('click', async () => {
-  const res = await fetch(`${API_BASE}/api/stripe/create-portal-session`, {
-    method: 'POST',
-    headers: authHeaders(),
-  });
-  const data = await res.json();
-  if (data.url) window.location.href = data.url;
-  else alert('Start a subscription first, then billing management will be available here.');
+document.getElementById('manageBillingBtn').addEventListener('click', async (e) => {
+  const btn = e.target;
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/stripe/create-portal-session`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) {
+      throw new Error(data.error || 'Start a subscription first, then billing management will be available here.');
+    }
+    window.location.href = data.url;
+  } catch (err) {
+    showBillingMsg(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 document.getElementById('logoutLink').addEventListener('click', (e) => {
