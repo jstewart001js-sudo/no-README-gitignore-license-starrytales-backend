@@ -36,8 +36,7 @@ Rules:
 - Keep it gentle and calming — suitable to read right before sleep. No peril that isn't quickly resolved, nothing scary, sad, or violent.
 - Length: 5-7 short paragraphs, simple sentences, calm pacing that winds down toward a peaceful ending.
 - End on a sleepy, cozy note (the character getting drowsy, heading to bed, stars coming out, etc.).
-- Respond ONLY with valid JSON in this exact shape, no extra commentary:
-{"title": "Story Title", "body": "Full story text with paragraphs separated by newlines"}`;
+- Use the write_bedtime_story tool to submit the finished story.`;
 
   const userPrompt = `Write tonight's bedtime story starring a child named ${childName}. Theme: ${themeDescription}.`;
 
@@ -46,21 +45,33 @@ Rules:
     max_tokens: 1200,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
+    tools: [
+      {
+        name: 'write_bedtime_story',
+        description: "Submit tonight's finished bedtime story.",
+        input_schema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'A short, warm story title.' },
+            body: { type: 'string', description: 'The full story text, with paragraphs separated by newline characters.' },
+          },
+          required: ['title', 'body'],
+        },
+      },
+    ],
+    tool_choice: { type: 'tool', name: 'write_bedtime_story' },
   });
 
-  const textBlock = response.content.find((block) => block.type === 'text');
-  if (!textBlock) {
-    throw new Error('No text returned from Claude API.');
+  // Structured tool input is validated by the API against the schema above,
+  // which avoids the free-text-JSON failure mode where Claude occasionally
+  // forgets to escape a quotation mark inside dialogue and breaks JSON.parse.
+  const toolUse = response.content.find((block) => block.type === 'tool_use');
+  if (!toolUse || !toolUse.input || !toolUse.input.title || !toolUse.input.body) {
+    console.error('Unexpected Claude response shape:', JSON.stringify(response.content));
+    throw new Error('Story generation did not return the expected story fields.');
   }
 
-  try {
-    const parsed = JSON.parse(textBlock.text);
-    if (!parsed.title || !parsed.body) throw new Error('Missing title or body.');
-    return parsed;
-  } catch (err) {
-    console.error('Failed to parse story JSON:', textBlock.text);
-    throw new Error('Story generation returned an unexpected format.');
-  }
+  return { title: toolUse.input.title, body: toolUse.input.body };
 }
 
 module.exports = { generateStory, THEME_PROMPTS };
