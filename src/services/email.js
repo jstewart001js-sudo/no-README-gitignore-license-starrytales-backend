@@ -53,4 +53,22 @@ async function sendStoryEmail(toEmail, childName, story) {
   return data;
 }
 
-module.exports = { sendStoryEmail };
+/**
+ * Notifies the StarryTales inbox of a new waitlist signup.
+ * @param {string} email - the interested visitor's email address
+ */
+async function sendWaitlistNotification(email) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: 'starrytales101@gmail.com',
+    subject: 'New StarryTales waitlist signup',
+    html: `<p>New waitlist signup: <strong>${escapeHtml(email)}</strong></p>`,
+  });
+
+  if (error) {
+    throw new Error(`Waitlist email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
+module.exports = { sendStoryEmail, sendWaitlistNotification };

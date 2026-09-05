@@ -376,6 +376,16 @@
   }
   .form-msg.show{display:block;}
 
+  /* ---------- WAITLIST ---------- */
+  .waitlist-form{display:flex; gap:12px; max-width:460px; margin:0 auto; flex-wrap:wrap;}
+  .waitlist-form input{
+    flex:1; min-width:220px; margin-bottom:0; padding:14px 16px;
+    border-radius:10px; border:1px solid rgba(42,33,24,0.18);
+    font-size:1rem; background:#fffdf8; color:var(--ink);
+  }
+  .waitlist-form .btn-primary{width:auto; padding:14px 28px;}
+  #waitlistMsg{max-width:460px; margin:16px auto 0;}
+
   /* ---------- FOOTER ---------- */
   footer{background:var(--midnight); padding:56px 0 36px; border-top:1px solid rgba(250,243,228,0.08);}
   .footer-grid{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;}
@@ -654,6 +664,21 @@
     </div>
   </section>
 
+  <section class="waitlist" id="waitlist">
+    <div class="wrap">
+      <div class="section-head center reveal" style="margin-left:auto;margin-right:auto;">
+        <span class="eyebrow">Not ready yet?</span>
+        <h2>Join the waitlist</h2>
+        <p>Leave your email and we'll keep you posted on new features and updates.</p>
+      </div>
+      <form id="waitlistForm" class="waitlist-form reveal" novalidate>
+        <input type="email" id="waitlistEmail" name="waitlistEmail" placeholder="you@example.com" required>
+        <button type="submit" class="btn-primary">Join waitlist</button>
+      </form>
+      <div class="form-msg" id="waitlistMsg"></div>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -825,6 +850,50 @@
       showFormMsg(err.message || 'Something went wrong. Please try again.', true);
       submitBtn.disabled = false;
       submitBtn.textContent = 'Sign up';
+    }
+  });
+
+  // Waitlist form — lower-commitment email capture for visitors not ready to sign up yet.
+  const waitlistForm = document.getElementById('waitlistForm');
+  const waitlistMsg = document.getElementById('waitlistMsg');
+
+  function showWaitlistMsg(text, isError) {
+    waitlistMsg.textContent = text;
+    waitlistMsg.style.background = isError ? '#fbeaea' : '#e9f4ec';
+    waitlistMsg.style.color = isError ? '#8a2f2f' : '#2c5e3f';
+    waitlistMsg.classList.add('show');
+  }
+
+  waitlistForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const email = document.getElementById('waitlistEmail').value.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+      showWaitlistMsg('Please enter a valid email address.', true);
+      return;
+    }
+
+    const submitBtn = waitlistForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Joining...';
+
+    try {
+      const res = await fetch(`${API_BASE}/api/waitlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not join the waitlist.');
+
+      showWaitlistMsg("You're on the list! We'll be in touch.", false);
+      waitlistForm.reset();
+    } catch (err) {
+      showWaitlistMsg(err.message || 'Something went wrong. Please try again.', true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Join waitlist';
     }
   });
 </script>

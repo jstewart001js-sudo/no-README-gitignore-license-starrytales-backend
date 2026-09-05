@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth');
 const childrenRoutes = require('./routes/children');
 const storiesRoutes = require('./routes/stories');
 const { router: stripeRoutes, handleWebhook } = require('./routes/stripe');
+const waitlistRoutes = require('./routes/waitlist');
 const { startScheduler } = require('./services/scheduler');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/children', childrenRoutes);
 app.use('/api/children', storiesRoutes); // mounts GET /api/children/:childId/stories
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/waitlist', waitlistRoutes);
 
 // Serve the marketing site + dashboard/login pages as static files.
 app.use(express.static(path.join(__dirname, '..', 'public')));
