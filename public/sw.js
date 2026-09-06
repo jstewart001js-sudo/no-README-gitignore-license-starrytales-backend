@@ -1,4 +1,4 @@
-const CACHE_NAME = 'starrytales-v1';
+const CACHE_NAME = 'starrytales-v2';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -35,16 +35,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Network-first: always serve the latest page/asset when online (so a
+  // deploy is never masked by a stale cache), falling back to the cache
+  // only when there's no connection.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const network = fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        return response;
+      })
+      .catch(() => caches.match(request))
   );
 });
