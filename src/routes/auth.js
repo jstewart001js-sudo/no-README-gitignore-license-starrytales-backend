@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const pool = require('../../db/pool');
-const { sendPasswordResetEmail } = require('../services/email');
+const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/email');
 
 const router = express.Router();
 const SALT_ROUNDS = 12;
@@ -39,6 +39,12 @@ router.post('/signup', async (req, res) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
     res.status(201).json({ token, user });
+
+    try {
+      await sendWelcomeEmail(user.parent_email);
+    } catch (emailErr) {
+      console.error('Welcome email send error', emailErr);
+    }
   } catch (err) {
     console.error('Signup error', err);
     res.status(500).json({ error: 'Something went wrong creating your account.' });

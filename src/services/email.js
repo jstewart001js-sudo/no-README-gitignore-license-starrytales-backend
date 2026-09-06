@@ -98,4 +98,36 @@ async function sendPasswordResetEmail(toEmail, resetUrl) {
   return data;
 }
 
-module.exports = { sendStoryEmail, sendWaitlistNotification, sendPasswordResetEmail };
+/**
+ * Sends a welcome email right after a parent creates their account.
+ * @param {string} toEmail - the new account's email address
+ */
+async function sendWelcomeEmail(toEmail) {
+  const dashboardUrl = `${process.env.APP_URL}/dashboard.html`;
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: 'Welcome to StarryTales!',
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:24px; margin:0 0 16px; color:#2a2118;">Welcome to StarryTales! 🌙</h1>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">Your account is ready. Add a child, choose their favorite kind of story, and start your subscription to begin nightly deliveries at 6:30 PM.</p>
+        <p style="margin:0 0 20px;"><a href="${dashboardUrl}" style="background:#f4c77a; color:#0c1526; padding:12px 24px; border-radius:100px; text-decoration:none; font-weight:bold;">Go to your dashboard</a></p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams, from all of us at StarryTales.</p>
+      </div>
+    </div>`,
+  });
+
+  if (error) {
+    throw new Error(`Welcome email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
+module.exports = {
+  sendStoryEmail,
+  sendWaitlistNotification,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+};
