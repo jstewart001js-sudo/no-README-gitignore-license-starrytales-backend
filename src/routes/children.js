@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { syncSubscriptionQuantity } = require('../services/subscriptionSync');
+const { containsProfanity } = require('../utils/profanityFilter');
 
 const router = express.Router();
 const VALID_THEMES = ['adventure', 'fantasy', 'space', 'underwater', 'animals', 'fairytale'];
@@ -15,6 +16,9 @@ router.post('/', async (req, res) => {
 
   if (!name || !name.trim()) {
     return res.status(400).json({ error: "Child's name is required." });
+  }
+  if (containsProfanity(name)) {
+    return res.status(400).json({ error: 'Please choose a different name.' });
   }
   if (!VALID_THEMES.includes(storyTheme)) {
     return res.status(400).json({ error: 'Please choose a valid story theme.' });
@@ -67,6 +71,9 @@ router.patch('/:id', async (req, res) => {
 
   if (storyTheme && !VALID_THEMES.includes(storyTheme)) {
     return res.status(400).json({ error: 'Please choose a valid story theme.' });
+  }
+  if (name && containsProfanity(name)) {
+    return res.status(400).json({ error: 'Please choose a different name.' });
   }
 
   try {
