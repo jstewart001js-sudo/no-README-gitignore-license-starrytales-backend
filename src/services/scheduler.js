@@ -50,7 +50,13 @@ async function runDeliveryTick() {
       );
       if (alreadySentToday.rows.length > 0) continue; // idempotency guard
 
-      const story = await generateStory(row.child_name, row.story_theme);
+      const recentTitlesResult = await pool.query(
+        `SELECT title FROM stories WHERE child_id = $1 ORDER BY created_at DESC LIMIT 5`,
+        [row.child_id]
+      );
+      const recentTitles = recentTitlesResult.rows.map((r) => r.title);
+
+      const story = await generateStory(row.child_name, row.story_theme, recentTitles);
 
       const inserted = await pool.query(
         `INSERT INTO stories (child_id, title, body, delivery_status)

@@ -25,10 +25,17 @@ const THEME_PROMPTS = {
  * Generates one unique bedtime story for a child.
  * @param {string} childName
  * @param {string} theme - one of the THEME_PROMPTS keys
+ * @param {string[]} recentTitles - titles of this child's most recent stories, to steer away from repeats
  * @returns {Promise<{ title: string, body: string }>}
  */
-async function generateStory(childName, theme) {
+async function generateStory(childName, theme, recentTitles = []) {
   const themeDescription = THEME_PROMPTS[theme] || THEME_PROMPTS.adventure;
+
+  const avoidanceNote = recentTitles.length
+    ? `\n- This child has already received these recent stories -- do not reuse their titles, settings, plots, or named side-characters. Make tonight's story clearly different (a new setting detail, new supporting characters, a new central event, and a new title):\n${recentTitles
+        .map((t) => `  - "${t}"`)
+        .join('\n')}`
+    : '';
 
   const systemPrompt = `You write short, original bedtime stories for young children.
 Rules:
@@ -36,7 +43,8 @@ Rules:
 - Keep it gentle and calming — suitable to read right before sleep. No peril that isn't quickly resolved, nothing scary, sad, or violent.
 - Length: 5-7 short paragraphs, simple sentences, calm pacing that winds down toward a peaceful ending.
 - End on a sleepy, cozy note (the character getting drowsy, heading to bed, stars coming out, etc.).
-- Use the write_bedtime_story tool to submit the finished story.`;
+- Each night's story must feel distinct from previous nights, even within the same theme.
+- Use the write_bedtime_story tool to submit the finished story.${avoidanceNote}`;
 
   const userPrompt = `Write tonight's bedtime story starring a child named ${childName}. Theme: ${themeDescription}.`;
 
