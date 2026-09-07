@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Join household — StarryTales</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="theme-color" content="#0c1526">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="card">
+    <h1 id="heading">You're invited!</h1>
+    <p class="sub" id="subtext">Loading your invite...</p>
+    <form id="acceptForm" hidden>
+      <label for="password" id="passwordLabel">Password</label>
+      <input type="password" id="password" required minlength="8">
+      <div class="field" id="confirmField" hidden>
+        <label for="confirmPassword">Confirm password</label>
+        <input type="password" id="confirmPassword" minlength="8">
+      </div>
+      <button type="submit">Join household</button>
+      <div class="msg" id="msg"></div>
+    </form>
+    <p class="foot-link"><a href="login.html">Back to log in</a></p>
+  </div>
+
+<script>
+  const API_BASE = window.location.origin;
+  const token = new URLSearchParams(window.location.search).get('token');
+  const heading = document.getElementById('heading');
+  const subtext = document.getElementById('subtext');
+  const form = document.getElementById('acceptForm');
+  const msg = document.getElementById('msg');
+  const passwordLabel = document.getElementById('passwordLabel');
+  const confirmField = document.getElementById('confirmField');
+  let accountExists = false;
+
+  async function loadInvite() {
+    if (!token) {
+      subtext.textContent = 'This invite link is missing its token.';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/household/invite-info/${token}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        subtext.textContent = data.error || 'This invite is invalid or has expired.';
+        return;
+      }
+
+      accountExists = data.accountExists;
+      heading.textContent = `Join ${data.ownerEmail}'s household`;
+      subtext.textContent = accountExists
+        ? `You already have a StarryTales account (${data.email}). Enter your existing password to join this household.`
+        : `Set a password for your new StarryTales account (${data.email}) to join this household.`;
+      passwordLabel.textContent = accountExists ? 'Your existing password' : 'Create a password';
+      confirmField.hidden = accountExists;
+      confirmField.querySelector('input').required = !accountExists;
+      form.hidden = false;
+    } catch (err) {
+      subtext.textContent = 'Could not load this invite. Please try again.';
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.className = 'msg';
+
+    const password = document.getElementById('password').value;
+
+    if (!accountExists) {
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      if (password !== confirmPassword) {
+        msg.textContent = 'Passwords do not match.';
+        msg.classList.add('show', 'error');
+        return;
+      }
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/household/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        msg.textContent = data.error || 'Could not accept this invite.';
+        msg.classList.add('show', 'error');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      localStorage.setItem('starrytales_token', data.token);
+      msg.textContent = "You're in! Redirecting to your dashboard...";
+      msg.classList.add('show', 'success');
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+    } catch (err) {
+      msg.textContent = 'Network error — please try again.';
+      msg.classList.add('show', 'error');
+      submitBtn.disabled = false;
+    }
+  });
+
+  loadInvite();
+</script>
+<script src="/pwa.js"></script>
+</body>
+</html>

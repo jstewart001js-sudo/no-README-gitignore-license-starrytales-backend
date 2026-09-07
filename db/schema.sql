@@ -41,7 +41,25 @@ CREATE TABLE IF NOT EXISTS stories (
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Lets a parent invite up to 3 other adults (co-parents, grandparents, etc.)
+-- to view and manage the same household's children/stories, without giving
+-- them access to billing.
+CREATE TABLE IF NOT EXISTS household_members (
+  id                    SERIAL PRIMARY KEY,
+  owner_user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  member_user_id        INTEGER REFERENCES users(id) ON DELETE CASCADE, -- set once the invite is accepted
+  email                 VARCHAR(255) NOT NULL,
+  status                VARCHAR(20) NOT NULL DEFAULT 'invited', -- invited | accepted
+  invite_token          VARCHAR(255) UNIQUE,
+  invite_token_expires  TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  accepted_at           TIMESTAMPTZ,
+  UNIQUE(owner_user_id, email)
+);
+
 CREATE INDEX IF NOT EXISTS idx_children_user_id ON children(user_id);
 CREATE INDEX IF NOT EXISTS idx_stories_child_id ON stories(child_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_household_members_owner ON household_members(owner_user_id);
+CREATE INDEX IF NOT EXISTS idx_household_members_member ON household_members(member_user_id);

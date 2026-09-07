@@ -125,9 +125,38 @@ async function sendWelcomeEmail(toEmail) {
   return data;
 }
 
+/**
+ * Invites another adult to join a household's StarryTales dashboard.
+ * @param {string} toEmail - the invitee's email address
+ * @param {string} ownerEmail - the inviting account's email, for context
+ * @param {string} acceptUrl - link to household-invite.html with the token
+ */
+async function sendHouseholdInviteEmail(toEmail, ownerEmail, acceptUrl) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: `${ownerEmail} invited you to their StarryTales household`,
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">You're invited to a StarryTales household</h1>
+        <p style="color:#3a2f22; line-height:1.6; margin:0 0 20px;"><strong>${escapeHtml(ownerEmail)}</strong> invited you to join their StarryTales household, so you can see and manage the same children's nightly stories. This link expires in 7 days.</p>
+        <p style="margin:0 0 20px;"><a href="${acceptUrl}" style="background:#f4c77a; color:#0c1526; padding:12px 24px; border-radius:100px; text-decoration:none; font-weight:bold;">Accept invite</a></p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">If you weren't expecting this, you can safely ignore this email.</p>
+      </div>
+    </div>`,
+  });
+
+  if (error) {
+    throw new Error(`Household invite email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
 module.exports = {
   sendStoryEmail,
   sendWaitlistNotification,
   sendPasswordResetEmail,
   sendWelcomeEmail,
+  sendHouseholdInviteEmail,
 };

@@ -16,10 +16,26 @@
     <h1>Your StarryTales account</h1>
     <p class="sub">Manage your children's stories, themes, and billing.</p>
 
+    <div class="msg" id="householdBanner"></div>
+
     <div id="billingBox">
       <button id="manageBillingBtn" class="secondary">Manage billing / subscription</button>
       <button id="startTrialBtn" style="margin-top:10px;">Start subscription ($7.99/mo per child)</button>
       <div class="msg" id="billingMsg"></div>
+    </div>
+
+    <hr style="margin:26px 0; border:none; border-top:1px dashed rgba(42,33,24,0.2);" id="householdDivider">
+
+    <div id="householdSection">
+      <h1 style="font-size:1.2rem;">Household members</h1>
+      <p class="sub">Invite up to 3 other adults (co-parents, grandparents, etc.) to manage the same children and see their stories.</p>
+      <form id="inviteForm">
+        <label for="inviteEmail">Email address</label>
+        <input type="email" id="inviteEmail" required>
+        <button type="submit">Send invite</button>
+        <div class="msg" id="inviteMsg"></div>
+      </form>
+      <div id="householdMembersList" style="margin-top:16px;"></div>
     </div>
 
     <hr style="margin:26px 0; border:none; border-top:1px dashed rgba(42,33,24,0.2);">

@@ -2,6 +2,7 @@ const express = require('express');
 const Stripe = require('stripe');
 const pool = require('../../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { isHouseholdMember } = require('../services/household');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
@@ -12,6 +13,10 @@ const router = express.Router();
 // however many active children they currently have (minimum 1).
 router.post('/create-checkout-session', requireAuth, async (req, res) => {
   try {
+    if (await isHouseholdMember(req.userId)) {
+      return res.status(403).json({ error: 'Only the household owner can manage billing.' });
+    }
+
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [req.userId]);
     const user = userResult.rows[0];
     if (!user) return res.status(404).json({ error: 'Account not found.' });
@@ -51,6 +56,10 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
 // cancel — avoids building that UI yourself.
 router.post('/create-portal-session', requireAuth, async (req, res) => {
   try {
+    if (await isHouseholdMember(req.userId)) {
+      return res.status(403).json({ error: 'Only the household owner can manage billing.' });
+    }
+
     const userResult = await pool.query('SELECT stripe_customer_id FROM users WHERE id = $1', [req.userId]);
     const customerId = userResult.rows[0]?.stripe_customer_id;
     if (!customerId) return res.status(400).json({ error: 'No billing account on file yet.' });

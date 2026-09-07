@@ -1,18 +1,21 @@
 const express = require('express');
 const pool = require('../../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { getEffectiveOwnerId } = require('../services/household');
 
 const router = express.Router();
 router.use(requireAuth);
 
 // GET /api/children/:childId/stories
-// Returns story history so a parent can revisit past nights' tales.
+// Returns story history so anyone in the household can revisit past nights' tales.
 router.get('/:childId/stories', async (req, res) => {
   const { childId } = req.params;
 
   try {
-    // Ownership check: the child must belong to the logged-in parent.
-    const owned = await pool.query('SELECT id FROM children WHERE id = $1 AND user_id = $2', [childId, req.userId]);
+    const ownerId = await getEffectiveOwnerId(req.userId);
+
+    // Ownership check: the child must belong to the caller's household.
+    const owned = await pool.query('SELECT id FROM children WHERE id = $1 AND user_id = $2', [childId, ownerId]);
     if (owned.rows.length === 0) {
       return res.status(404).json({ error: 'Child not found.' });
     }

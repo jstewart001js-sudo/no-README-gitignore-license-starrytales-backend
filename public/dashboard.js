@@ -248,4 +248,103 @@ document.getElementById('logoutLink').addEventListener('click', (e) => {
   window.location.href = 'login.html';
 });
 
+// Household members
+const inviteForm = document.getElementById('inviteForm');
+const inviteMsg = document.getElementById('inviteMsg');
+const householdBanner = document.getElementById('householdBanner');
+
+const MEMBER_STATUS_LABELS = {
+  invited: { label: 'Invited', className: 'pill-pending' },
+  accepted: { label: 'Accepted', className: 'pill-sent' },
+};
+
+async function loadHouseholdStatus() {
+  const res = await fetch(`${API_BASE}/api/household/status`, { headers: authHeaders() });
+  if (!res.ok) return;
+  const status = await res.json();
+
+  if (status.isMember) {
+    householdBanner.textContent = `You're viewing ${status.ownerEmail}'s household. Billing and invites are managed by them.`;
+    householdBanner.classList.add('show', 'success');
+    document.getElementById('billingBox').style.display = 'none';
+    document.getElementById('householdSection').style.display = 'none';
+    document.getElementById('householdDivider').style.display = 'none';
+  } else {
+    loadHouseholdMembers();
+  }
+}
+
+async function loadHouseholdMembers() {
+  const res = await fetch(`${API_BASE}/api/household/members`, { headers: authHeaders() });
+  if (!res.ok) return;
+  const members = await res.json();
+  renderHouseholdMembers(members);
+}
+
+function renderHouseholdMembers(members) {
+  const container = document.getElementById('householdMembersList');
+
+  if (members.length === 0) {
+    container.innerHTML = '<p class="sub">No household members yet.</p>';
+    return;
+  }
+
+  container.innerHTML = members
+    .map((member) => {
+      const status = MEMBER_STATUS_LABELS[member.status] || MEMBER_STATUS_LABELS.invited;
+      return `
+        <div class="child-row">
+          <div>
+            <strong>${escapeHtml(member.email)}</strong>
+            <div class="meta"><span class="pill ${status.className}">${status.label}</span></div>
+          </div>
+          <div class="row-actions">
+            <button data-member-id="${member.id}" class="remove-member secondary">Remove</button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  container.querySelectorAll('.remove-member').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      await fetch(`${API_BASE}/api/household/members/${e.target.dataset.memberId}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      loadHouseholdMembers();
+    });
+  });
+}
+
+inviteForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  inviteMsg.className = 'msg';
+
+  const email = document.getElementById('inviteEmail').value.trim();
+  const submitBtn = inviteForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/household/invite`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not send the invite.');
+
+    inviteMsg.textContent = `Invite sent to ${email}.`;
+    inviteMsg.classList.add('show', 'success');
+    inviteForm.reset();
+    loadHouseholdMembers();
+  } catch (err) {
+    inviteMsg.textContent = err.message;
+    inviteMsg.classList.add('show', 'error');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
 loadChildren();
+loadHouseholdStatus();

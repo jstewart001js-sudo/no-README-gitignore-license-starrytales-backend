@@ -3,6 +3,7 @@ const pool = require('../../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { syncSubscriptionQuantity } = require('../services/subscriptionSync');
 const { containsProfanity } = require('../utils/profanityFilter');
+const { getEffectiveOwnerId } = require('../services/household');
 
 const router = express.Router();
 const VALID_THEMES = ['adventure', 'fantasy', 'space', 'underwater', 'animals', 'fairytale'];
@@ -11,6 +12,8 @@ router.use(requireAuth);
 
 // POST /api/children
 // Body: { name, storyTheme }
+// Household members act on their household owner's children, not their own
+// account, so pricing/delivery/billing all stay tied to the one owner.
 router.post('/', async (req, res) => {
   const { name, storyTheme } = req.body;
 
@@ -25,11 +28,12 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const ownerId = await getEffectiveOwnerId(req.userId);
     const result = await pool.query(
       `INSERT INTO children (user_id, name, story_theme)
        VALUES ($1, $2, $3)
        RETURNING id, name, story_theme, active, created_at`,
-      [req.userId, name.trim(), storyTheme]
+      [ownerId, name.trim(), storyTheme]
     );
     res.status(201).json(result.rows[0]);
 
@@ -37,7 +41,7 @@ router.post('/', async (req, res) => {
     // if one already exists. Runs after responding so a Stripe hiccup never
     // blocks adding the child.
     try {
-      await syncSubscriptionQuantity(req.userId);
+      await syncSubscriptionQuantity(ownerId);
     } catch (syncErr) {
       console.error('Subscription quantity sync error (add child)', syncErr);
     }
@@ -48,13 +52,14 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/children
-// Lists every child belonging to the logged-in parent.
+// Lists every child belonging to the caller's household.
 router.get('/', async (req, res) => {
   try {
+    const ownerId = await getEffectiveOwnerId(req.userId);
     const result = await pool.query(
       `SELECT id, name, story_theme, active, created_at
        FROM children WHERE user_id = $1 ORDER BY created_at ASC`,
-      [req.userId]
+      [ownerId]
     );
     res.json(result.rows);
   } catch (err) {
@@ -77,8 +82,10 @@ router.patch('/:id', async (req, res) => {
   }
 
   try {
-    // Ownership check first so one parent can never edit another parent's child.
-    const owned = await pool.query('SELECT id FROM children WHERE id = $1 AND user_id = $2', [id, req.userId]);
+    const ownerId = await getEffectiveOwnerId(req.userId);
+
+    // Ownership check first so one household can never edit another's child.
+    const owned = await pool.query('SELECT id FROM children WHERE id = $1 AND user_id = $2', [id, ownerId]);
     if (owned.rows.length === 0) {
       return res.status(404).json({ error: 'Child not found.' });
     }
@@ -99,7 +106,7 @@ router.patch('/:id', async (req, res) => {
     // toggle itself.
     if (active !== undefined) {
       try {
-        await syncSubscriptionQuantity(req.userId);
+        await syncSubscriptionQuantity(ownerId);
       } catch (syncErr) {
         console.error('Subscription quantity sync error (toggle active)', syncErr);
       }
