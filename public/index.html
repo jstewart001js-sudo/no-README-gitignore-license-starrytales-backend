@@ -414,8 +414,9 @@
     .hero-grid, .preview-layout, .signup-layout{grid-template-columns:1fr;}
     .hero-book{height:auto; margin-top:20px;}
     .chapter-grid, .theme-grid, .testi-grid{grid-template-columns:1fr 1fr;}
-    .nav-links a:not(.nav-cta):not(.nav-cta-secondary){display:none;}
+    .nav-links a:not(.nav-cta):not(.nav-cta-secondary):not(.nav-cta-login){display:none;}
     .nav-links{gap:10px;}
+    .nav-cta-login{font-size:0.85rem; font-weight:700; opacity:1;}
   }
   @media (max-width: 600px){
     section{padding:76px 0;}
@@ -424,6 +425,7 @@
     .signup-card{padding:28px 22px;}
     .book-card{transform:rotate(0);}
     .nav-cta, .nav-cta-secondary{padding:8px 14px; font-size:0.78rem;}
+    .nav-cta-login{font-size:0.78rem;}
   }
 </style>
 </head>
@@ -441,7 +443,7 @@
         <a href="#preview">See a story</a>
         <a href="#themes">Themes</a>
         <a href="#pricing">Pricing</a>
-        <a href="/login.html">Log in</a>
+        <a href="/login.html" class="nav-cta-login">Log in</a>
         <a href="#signup" class="nav-cta-secondary">Free trial</a>
         <a href="#signup" class="nav-cta">Sign up</a>
       </div>
