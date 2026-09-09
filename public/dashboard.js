@@ -58,8 +58,10 @@ function renderChildren(children) {
         <button data-child-id="${child.id}" data-active="${child.active}" class="toggle-active secondary">
           ${child.active ? 'Pause' : 'Resume'}
         </button>
+        <button data-child-id="${child.id}" class="send-now secondary">Send now</button>
         <button data-child-id="${child.id}" class="view-stories secondary">View stories</button>
       </div>
+      <div class="msg" id="sendNowMsg-${child.id}"></div>
     `;
     wrapper.appendChild(row);
 
@@ -83,6 +85,40 @@ function renderChildren(children) {
       const isActive = e.target.dataset.active === 'true';
       await updateChild(e.target.dataset.childId, { active: !isActive });
       loadChildren();
+    });
+  });
+
+  container.querySelectorAll('.send-now').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const childId = e.target.dataset.childId;
+      const msg = document.getElementById(`sendNowMsg-${childId}`);
+      const originalText = e.target.textContent;
+      e.target.disabled = true;
+      e.target.textContent = 'Sending...';
+      msg.className = 'msg';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/children/${childId}/send-now`, {
+          method: 'POST',
+          headers: authHeaders(),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not send the story.');
+
+        msg.textContent = `Sent "${data.title}"!`;
+        msg.classList.add('show', 'success');
+
+        const listEl = document.getElementById(`stories-${childId}`);
+        if (listEl && listEl.dataset.loaded) {
+          await loadStories(childId, listEl);
+        }
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.classList.add('show', 'error');
+      } finally {
+        e.target.disabled = false;
+        e.target.textContent = originalText;
+      }
     });
   });
 
