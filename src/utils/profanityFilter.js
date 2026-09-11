@@ -9,6 +9,15 @@ const BLOCKED_WORDS = new Set([
   'motherfucker', 'goddamn', 'damn', 'hell', 'crap',
 ]);
 
+// Names of historical hate figures / genocidal dictators -- names parents
+// have deliberately used to make a hateful statement rather than to name a
+// child. Same whole-word matching as BLOCKED_WORDS, so multi-word input
+// (e.g. "Adolf Hitler") is caught on either word.
+const BLOCKED_NAMES = new Set([
+  'adolf', 'hitler', 'himmler', 'goebbels', 'mengele',
+  'stalin', 'mussolini', 'saddam', 'osama',
+]);
+
 function containsProfanity(text) {
   if (!text) return false;
   const words = text
@@ -16,7 +25,7 @@ function containsProfanity(text) {
     .replace(/[^a-z\s]/g, ' ')
     .split(/\s+/)
     .filter(Boolean);
-  return words.some((word) => BLOCKED_WORDS.has(word));
+  return words.some((word) => BLOCKED_WORDS.has(word) || BLOCKED_NAMES.has(word));
 }
 
 module.exports = { containsProfanity };
