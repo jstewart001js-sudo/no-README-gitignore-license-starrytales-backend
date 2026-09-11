@@ -60,6 +60,7 @@ function renderChildren(children) {
         </button>
         <button data-child-id="${child.id}" class="send-now secondary">Send now</button>
         <button data-child-id="${child.id}" class="view-stories secondary">View stories</button>
+        <button data-child-id="${child.id}" data-child-name="${escapeHtml(child.name)}" class="remove-child secondary">Remove</button>
       </div>
       <div class="msg" id="sendNowMsg-${child.id}"></div>
     `;
@@ -132,6 +133,33 @@ function renderChildren(children) {
       if (wasHidden && !listEl.dataset.loaded) {
         await loadStories(childId, listEl);
         listEl.dataset.loaded = 'true';
+      }
+    });
+  });
+
+  container.querySelectorAll('.remove-child').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const childId = e.target.dataset.childId;
+      const childName = e.target.dataset.childName;
+      const confirmed = confirm(
+        `Remove ${childName}? This permanently deletes their story history and can't be undone. If this is your last active child, your subscription will be cancelled.`
+      );
+      if (!confirmed) return;
+
+      e.target.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/api/children/${childId}`, {
+          method: 'DELETE',
+          headers: authHeaders(),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Could not remove this child.');
+        }
+        loadChildren();
+      } catch (err) {
+        alert(err.message);
+        e.target.disabled = false;
       }
     });
   });

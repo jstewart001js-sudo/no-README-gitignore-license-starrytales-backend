@@ -117,4 +117,35 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/children/:id
+// Permanently removes a child and their story history (cascades via the
+// stories.child_id foreign key). If this leaves the household with no
+// active children, syncSubscriptionQuantity cancels the Stripe subscription
+// outright rather than leaving it billed for a phantom minimum quantity.
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const ownerId = await getEffectiveOwnerId(req.userId);
+
+    const owned = await pool.query('SELECT id FROM children WHERE id = $1 AND user_id = $2', [id, ownerId]);
+    if (owned.rows.length === 0) {
+      return res.status(404).json({ error: 'Child not found.' });
+    }
+
+    await pool.query('DELETE FROM children WHERE id = $1', [id]);
+    res.status(204).end();
+
+    // Runs after responding so a Stripe hiccup never blocks the removal itself.
+    try {
+      await syncSubscriptionQuantity(ownerId);
+    } catch (syncErr) {
+      console.error('Subscription quantity sync error (remove child)', syncErr);
+    }
+  } catch (err) {
+    console.error('Delete child error', err);
+    res.status(500).json({ error: 'Could not remove this child right now.' });
+  }
+});
+
 module.exports = router;

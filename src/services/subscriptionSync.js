@@ -4,11 +4,13 @@ const pool = require('../../db/pool');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
- * Pricing is per active child. Call this after adding a child or toggling
- * one's active/paused state so the subscriber's Stripe subscription quantity
- * (and therefore their bill) stays in sync with how many children are
- * actually active. A no-op if the account has no active/trialing
+ * Pricing is per active child. Call this after adding, removing, or toggling
+ * a child's active/paused state so the subscriber's Stripe subscription
+ * quantity (and therefore their bill) stays in sync with how many children
+ * are actually active. A no-op if the account has no active/trialing
  * subscription yet -- checkout sets the correct quantity at signup time.
+ * Stripe requires quantity >= 1 on a subscription item, so when zero
+ * children are left active, this cancels the subscription outright instead.
  */
 async function syncSubscriptionQuantity(userId) {
   const subResult = await pool.query(
@@ -24,9 +26,16 @@ async function syncSubscriptionQuantity(userId) {
     'SELECT COUNT(*)::int AS count FROM children WHERE user_id = $1 AND active = true',
     [userId]
   );
-  // Stripe requires quantity >= 1, so a subscriber who pauses every child
-  // keeps being billed for one until they cancel outright.
-  const quantity = Math.max(countResult.rows[0].count, 1);
+  const quantity = countResult.rows[0].count;
+
+  if (quantity === 0) {
+    await stripe.subscriptions.cancel(subscriptionId);
+    await pool.query(
+      `UPDATE subscriptions SET status = 'canceled', updated_at = now() WHERE stripe_subscription_id = $1`,
+      [subscriptionId]
+    );
+    return;
+  }
 
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const item = subscription.items.data[0];
