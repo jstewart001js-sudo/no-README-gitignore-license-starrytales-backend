@@ -59,9 +59,11 @@ function renderChildren(children) {
           ${child.active ? 'Pause' : 'Resume'}
         </button>
         <button data-child-id="${child.id}" class="send-now secondary">Send now</button>
+        <button data-child-id="${child.id}" data-child-name="${escapeHtml(child.name)}" class="rename-child secondary">Rename</button>
         <button data-child-id="${child.id}" class="view-stories secondary">View stories</button>
         <button data-child-id="${child.id}" data-child-name="${escapeHtml(child.name)}" class="remove-child secondary">Remove</button>
       </div>
+      <div class="msg" id="renameMsg-${child.id}"></div>
       <div class="msg" id="sendNowMsg-${child.id}"></div>
     `;
     wrapper.appendChild(row);
@@ -119,6 +121,36 @@ function renderChildren(children) {
       } finally {
         e.target.disabled = false;
         e.target.textContent = originalText;
+      }
+    });
+  });
+
+  container.querySelectorAll('.rename-child').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const childId = e.target.dataset.childId;
+      const currentName = e.target.dataset.childName;
+      const msg = document.getElementById(`renameMsg-${childId}`);
+      msg.className = 'msg';
+
+      const newName = prompt("Child's new name:", currentName);
+      if (newName === null) return; // cancelled
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === currentName) return;
+
+      e.target.disabled = true;
+      try {
+        const res = await fetch(`${API_BASE}/api/children/${childId}`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify({ name: trimmed }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not rename this child.');
+        loadChildren();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.classList.add('show', 'error');
+        e.target.disabled = false;
       }
     });
   });
