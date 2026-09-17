@@ -6,7 +6,7 @@ const { containsProfanity } = require('../utils/profanityFilter');
 const { getEffectiveOwnerId } = require('../services/household');
 
 const router = express.Router();
-const VALID_THEMES = ['adventure', 'fantasy', 'space', 'underwater', 'animals', 'fairytale'];
+const VALID_THEMES = ['adventure', 'fantasy', 'space', 'underwater', 'animals', 'fairytale', 'mythical'];
 
 router.use(requireAuth);
 

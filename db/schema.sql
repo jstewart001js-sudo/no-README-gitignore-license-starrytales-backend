@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS children (
   id            SERIAL PRIMARY KEY,
   user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name          VARCHAR(100) NOT NULL,
-  story_theme   VARCHAR(50) NOT NULL, -- adventure | fantasy | space | underwater | animals | fairytale
+  story_theme   VARCHAR(50) NOT NULL, -- adventure | fantasy | space | underwater | animals | fairytale | mythical
   active        BOOLEAN NOT NULL DEFAULT true, -- lets a parent pause one child's delivery
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );

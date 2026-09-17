@@ -12,6 +12,7 @@ const THEME_LABELS = {
   underwater: 'Underwater World',
   animals: 'Animal Friends',
   fairytale: 'Classic Fairy Tale',
+  mythical: 'Mythical Creatures',
 };
 
 function authHeaders() {
