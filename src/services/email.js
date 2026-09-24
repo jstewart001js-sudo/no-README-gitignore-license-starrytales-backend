@@ -153,8 +153,37 @@ async function sendHouseholdInviteEmail(toEmail, ownerEmail, acceptUrl) {
   return data;
 }
 
+/**
+ * Sends a one-off apology for the 2026-09-23 delivery delay during beta.
+ * @param {string} toEmail - the account's email address
+ */
+async function sendServiceApologyEmail(toEmail) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: 'A quick note about tonight\'s story delay',
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">A quick apology from StarryTales</h1>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">Hi there,</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">You may have noticed tonight's bedtime story arrived late, or not at all. That was on us — a configuration issue in our story-delivery system caused a delay for some families tonight.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">We're still in the beta testing stage, working out exactly these kinds of kinks before a full launch, and we're sorry your family got caught by one. The issue is fixed, and tonight's story has now been delivered.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 20px;">Thank you for your patience as we build this out — it means a lot to have you along for the beta.</p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams from all of us at StarryTales. 🌙</p>
+      </div>
+    </div>`,
+  });
+
+  if (error) {
+    throw new Error(`Apology email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
 module.exports = {
   sendStoryEmail,
+  sendServiceApologyEmail,
   sendWaitlistNotification,
   sendPasswordResetEmail,
   sendWelcomeEmail,
