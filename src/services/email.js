@@ -181,9 +181,64 @@ async function sendServiceApologyEmail(toEmail) {
   return data;
 }
 
+/**
+ * Invites a friend to try StarryTales on behalf of an existing parent.
+ * @param {string} toEmail - the friend's email address
+ * @param {string} referrerEmail - the inviting parent's email, for context
+ * @param {string} signupUrl - link to index.html#signup carrying the referral token
+ */
+async function sendReferralInviteEmail(toEmail, referrerEmail, signupUrl) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: `${referrerEmail} thinks your family would love StarryTales`,
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">A bedtime story invitation</h1>
+        <p style="color:#3a2f22; line-height:1.6; margin:0 0 20px;"><strong>${escapeHtml(referrerEmail)}</strong> thought your family would enjoy StarryTales — a fresh, personalized bedtime story for your child, delivered by email every night at 6:30 PM.</p>
+        <p style="margin:0 0 20px;"><a href="${signupUrl}" style="background:#f4c77a; color:#0c1526; padding:12px 24px; border-radius:100px; text-decoration:none; font-weight:bold;">Try StarryTales</a></p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">If you weren't expecting this, you can safely ignore this email.</p>
+      </div>
+    </div>`,
+  });
+
+  if (error) {
+    throw new Error(`Referral invite email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
+/**
+ * Lets a parent know their referral converted and they earned a reward.
+ * @param {string} toEmail - the referring parent's email address
+ */
+async function sendReferralRewardEmail(toEmail) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: 'You earned a free month on StarryTales!',
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">Thanks for spreading the word! 🌙</h1>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">A friend you referred just became a StarryTales subscriber — so we've added a $7.99 credit to your account. It'll automatically apply to your next bill.</p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams from all of us at StarryTales.</p>
+      </div>
+    </div>`,
+  });
+
+  if (error) {
+    throw new Error(`Referral reward email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
 module.exports = {
   sendStoryEmail,
   sendServiceApologyEmail,
+  sendReferralInviteEmail,
+  sendReferralRewardEmail,
   sendWaitlistNotification,
   sendPasswordResetEmail,
   sendWelcomeEmail,

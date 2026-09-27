@@ -57,9 +57,32 @@ CREATE TABLE IF NOT EXISTS household_members (
   UNIQUE(owner_user_id, email)
 );
 
+-- Lets a household owner refer a friend by email. When the referred email
+-- signs up via the referral link, referred_user_id is set and status moves
+-- to 'signed_up'. The reward (a flat account credit) only fires once that
+-- referred account's subscription actually converts from trial to a paid
+-- charge -- see the customer.subscription.updated webhook handler -- at
+-- which point status becomes 'rewarded'. If the referrer has already hit
+-- their yearly reward cap when that happens, status becomes 'capped'
+-- instead (no credit applied, but nothing lost -- the referred signup still
+-- counts as a good one, it's just past the cap).
+CREATE TABLE IF NOT EXISTS referrals (
+  id                  SERIAL PRIMARY KEY,
+  referrer_user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  referred_email      VARCHAR(255) NOT NULL,
+  referral_token      VARCHAR(255) UNIQUE NOT NULL,
+  status              VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending | signed_up | processing | rewarded | capped
+  referred_user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  reward_applied_at   TIMESTAMPTZ,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX IF NOT EXISTS idx_children_user_id ON children(user_id);
 CREATE INDEX IF NOT EXISTS idx_stories_child_id ON stories(child_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_id ON subscriptions(stripe_subscription_id);
 CREATE INDEX IF NOT EXISTS idx_household_members_owner ON household_members(owner_user_id);
 CREATE INDEX IF NOT EXISTS idx_household_members_member ON household_members(member_user_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_user_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_token ON referrals(referral_token);
+CREATE INDEX IF NOT EXISTS idx_referrals_referred_user ON referrals(referred_user_id);

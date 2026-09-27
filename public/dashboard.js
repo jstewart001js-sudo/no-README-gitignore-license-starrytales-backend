@@ -368,8 +368,11 @@ async function loadHouseholdStatus() {
     document.getElementById('billingBox').style.display = 'none';
     document.getElementById('householdSection').style.display = 'none';
     document.getElementById('householdDivider').style.display = 'none';
+    document.getElementById('referralSection').style.display = 'none';
+    document.getElementById('referralDivider').style.display = 'none';
   } else {
     loadHouseholdMembers();
+    loadReferrals();
   }
 }
 
@@ -440,6 +443,77 @@ inviteForm.addEventListener('submit', async (e) => {
   } catch (err) {
     inviteMsg.textContent = err.message;
     inviteMsg.classList.add('show', 'error');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+// Referrals
+const referralForm = document.getElementById('referralForm');
+const referralMsg = document.getElementById('referralMsg');
+
+const REFERRAL_STATUS_LABELS = {
+  pending: { label: 'Invite sent', className: 'pill-pending' },
+  signed_up: { label: 'Signed up — trial in progress', className: 'pill-pending' },
+  processing: { label: 'Processing', className: 'pill-pending' },
+  rewarded: { label: 'Reward earned!', className: 'pill-sent' },
+  capped: { label: 'Signed up (yearly cap reached)', className: 'pill-failed' },
+};
+
+async function loadReferrals() {
+  const res = await fetch(`${API_BASE}/api/referrals`, { headers: authHeaders() });
+  if (!res.ok) return;
+  const referrals = await res.json();
+  renderReferrals(referrals);
+}
+
+function renderReferrals(referrals) {
+  const container = document.getElementById('referralsList');
+
+  if (referrals.length === 0) {
+    container.innerHTML = '<p class="sub">No referrals sent yet.</p>';
+    return;
+  }
+
+  container.innerHTML = referrals
+    .map((referral) => {
+      const status = REFERRAL_STATUS_LABELS[referral.status] || REFERRAL_STATUS_LABELS.pending;
+      return `
+        <div class="child-row">
+          <div>
+            <strong>${escapeHtml(referral.referred_email)}</strong>
+            <div class="meta"><span class="pill ${status.className}">${status.label}</span></div>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+referralForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  referralMsg.className = 'msg';
+
+  const email = document.getElementById('referralEmail').value.trim();
+  const submitBtn = referralForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/referrals`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not send the referral.');
+
+    referralMsg.textContent = `Referral sent to ${email}.`;
+    referralMsg.classList.add('show', 'success');
+    referralForm.reset();
+    loadReferrals();
+  } catch (err) {
+    referralMsg.textContent = err.message;
+    referralMsg.classList.add('show', 'error');
   } finally {
     submitBtn.disabled = false;
   }

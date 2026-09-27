@@ -3,9 +3,13 @@ const Stripe = require('stripe');
 const pool = require('../../db/pool');
 const { requireAuth } = require('../middleware/auth');
 const { isHouseholdMember } = require('../services/household');
+const { sendReferralRewardEmail } = require('../services/email');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
+
+const REFERRAL_REWARD_CENTS = 799; // $7.99 -- one child-month, flat, regardless of the referrer's plan/quantity
+const REFERRAL_REWARD_CAP_PER_YEAR = 6;
 
 // POST /api/stripe/create-checkout-session
 // Protected. Body: { plan } where plan is 'monthly' (default) or 'annual'.
@@ -102,7 +106,20 @@ async function handleWebhook(req, res) {
         await upsertSubscriptionForCustomer(session.customer, session.subscription);
         break;
       }
-      case 'customer.subscription.updated':
+      case 'customer.subscription.updated': {
+        const sub = event.data.object;
+        const previousStatus = event.data.previous_attributes?.status;
+        await upsertSubscriptionRecord(sub);
+        // Every checkout starts with a 7-day trial (see create-checkout-session
+        // above), so trialing -> active is the reliable signal that this
+        // subscriber's first real payment just succeeded -- as opposed to
+        // status merely being 'active' on its own, which trial subscriptions
+        // never are until that happens.
+        if (previousStatus === 'trialing' && sub.status === 'active') {
+          await applyReferralRewardIfEligible(sub.customer);
+        }
+        break;
+      }
       case 'customer.subscription.created': {
         const sub = event.data.object;
         await upsertSubscriptionRecord(sub);
@@ -157,6 +174,82 @@ async function upsertSubscriptionRecord(sub) {
      DO UPDATE SET status = $3, current_period_end = $4, updated_at = now()`,
     [user.id, sub.id, sub.status, periodEnd]
   );
+}
+
+// Applies the referral reward for a referred account's first paid
+// conversion, if one is owed. Safe to call more than once for the same
+// event (Stripe may redeliver webhooks): the atomic claim below means only
+// one call can ever move a referral out of 'signed_up', so a duplicate
+// delivery arriving after the first has finished is a no-op.
+async function applyReferralRewardIfEligible(stripeCustomerId) {
+  const userResult = await pool.query('SELECT id FROM users WHERE stripe_customer_id = $1', [stripeCustomerId]);
+  const referredUser = userResult.rows[0];
+  if (!referredUser) return;
+
+  const referralResult = await pool.query(
+    `SELECT id, referrer_user_id FROM referrals WHERE referred_user_id = $1 AND status = 'signed_up' LIMIT 1`,
+    [referredUser.id]
+  );
+  const referral = referralResult.rows[0];
+  if (!referral) return; // not a referred signup, or already handled
+
+  const claim = await pool.query(
+    `UPDATE referrals SET status = 'processing' WHERE id = $1 AND status = 'signed_up' RETURNING id`,
+    [referral.id]
+  );
+  if (claim.rows.length === 0) return; // another delivery of this event already claimed it
+
+  try {
+    const rewardCountResult = await pool.query(
+      `SELECT COUNT(*)::int AS count FROM referrals
+       WHERE referrer_user_id = $1 AND status = 'rewarded' AND reward_applied_at > now() - interval '365 days'`,
+      [referral.referrer_user_id]
+    );
+    if (rewardCountResult.rows[0].count >= REFERRAL_REWARD_CAP_PER_YEAR) {
+      await pool.query(`UPDATE referrals SET status = 'capped' WHERE id = $1`, [referral.id]);
+      return;
+    }
+
+    const referrerResult = await pool.query(
+      'SELECT parent_email, stripe_customer_id FROM users WHERE id = $1',
+      [referral.referrer_user_id]
+    );
+    const referrer = referrerResult.rows[0];
+    if (!referrer) {
+      await pool.query(`UPDATE referrals SET status = 'signed_up' WHERE id = $1`, [referral.id]);
+      return;
+    }
+
+    let referrerCustomerId = referrer.stripe_customer_id;
+    if (!referrerCustomerId) {
+      const customer = await stripe.customers.create({ email: referrer.parent_email });
+      referrerCustomerId = customer.id;
+      await pool.query('UPDATE users SET stripe_customer_id = $1 WHERE id = $2', [
+        referrerCustomerId,
+        referral.referrer_user_id,
+      ]);
+    }
+
+    await stripe.customers.createBalanceTransaction(referrerCustomerId, {
+      amount: -REFERRAL_REWARD_CENTS,
+      currency: 'usd',
+      description: 'Referral reward — free month credit',
+    });
+
+    await pool.query(`UPDATE referrals SET status = 'rewarded', reward_applied_at = now() WHERE id = $1`, [
+      referral.id,
+    ]);
+
+    try {
+      await sendReferralRewardEmail(referrer.parent_email);
+    } catch (emailErr) {
+      console.error('Referral reward email error', emailErr);
+    }
+  } catch (err) {
+    console.error('Referral reward processing error', err);
+    // Revert the claim so a future webhook retry can pick this back up.
+    await pool.query(`UPDATE referrals SET status = 'signed_up' WHERE id = $1`, [referral.id]).catch(() => {});
+  }
 }
 
 module.exports = { router, handleWebhook };

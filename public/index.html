@@ -881,6 +881,7 @@
 
     try {
       // 1. Create the parent account
+      const referralToken = new URLSearchParams(window.location.search).get('ref') || undefined;
       const signupRes = await fetch(`${API_BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -888,6 +889,7 @@
           parentEmail,
           password,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          referralToken,
         }),
       });
       const signupData = await signupRes.json();

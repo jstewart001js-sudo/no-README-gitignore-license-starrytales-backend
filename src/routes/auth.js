@@ -10,9 +10,14 @@ const SALT_ROUNDS = 12;
 
 // POST /api/auth/signup
 // Creates a parent account. Called from the "Begin the story" form.
-// Body: { parentEmail, password, timezone }
+// Body: { parentEmail, password, timezone, referralToken }
+// referralToken is optional -- present when this signup came from a
+// "refer a friend" link (see src/routes/referrals.js). The actual reward
+// only fires later, once this account's subscription converts from trial
+// to a paid charge (see the Stripe webhook handler) -- signing up alone
+// doesn't earn the referrer anything.
 router.post('/signup', async (req, res) => {
-  const { parentEmail, password, timezone } = req.body;
+  const { parentEmail, password, timezone, referralToken } = req.body;
 
   if (!parentEmail || !password) {
     return res.status(400).json({ error: 'Email and password are required.' });
@@ -39,6 +44,18 @@ router.post('/signup', async (req, res) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
     res.status(201).json({ token, user });
+
+    if (referralToken) {
+      try {
+        await pool.query(
+          `UPDATE referrals SET referred_user_id = $1, status = 'signed_up'
+           WHERE referral_token = $2 AND status = 'pending'`,
+          [user.id, referralToken]
+        );
+      } catch (referralErr) {
+        console.error('Referral link error', referralErr);
+      }
+    }
 
     try {
       await sendWelcomeEmail(user.parent_email);
