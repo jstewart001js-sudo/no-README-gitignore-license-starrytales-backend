@@ -304,9 +304,11 @@ document.getElementById('startTrialBtn').addEventListener('click', async (e) => 
   btn.textContent = 'Starting checkout...';
 
   try {
+    const plan = document.getElementById('billingPlan').value;
     const res = await fetch(`${API_BASE}/api/stripe/create-checkout-session`, {
       method: 'POST',
       headers: authHeaders(),
+      body: JSON.stringify({ plan }),
     });
     const data = await res.json();
     if (!res.ok || !data.url) throw new Error(data.error || 'Could not start checkout.');

@@ -20,7 +20,12 @@
 
     <div id="billingBox">
       <button id="manageBillingBtn" class="secondary">Manage billing / subscription</button>
-      <button id="startTrialBtn" style="margin-top:10px;">Start subscription ($7.99/mo per child)</button>
+      <label for="billingPlan" style="display:block; margin:14px 0 6px;">Billing plan</label>
+      <select id="billingPlan">
+        <option value="monthly">Monthly — $7.99/mo per child</option>
+        <option value="annual">Annual — $75.99/yr per child (save $20/year)</option>
+      </select>
+      <button id="startTrialBtn" style="margin-top:10px;">Start subscription</button>
       <div class="msg" id="billingMsg"></div>
     </div>
 

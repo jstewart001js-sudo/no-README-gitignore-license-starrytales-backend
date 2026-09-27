@@ -339,6 +339,20 @@
   .price-list li:first-child{border-top:none;}
   .price-list li::before{content:'✦'; color:var(--rose); flex-shrink:0; margin-top:2px;}
   .price-card .btn-primary{width:100%; text-align:center; display:block;}
+  .plan-toggle{display:flex; justify-content:center; gap:8px; margin-bottom:28px;}
+  .plan-toggle button{
+    background:transparent; border:1px solid rgba(244,199,122,0.35); color:var(--parchment-dim);
+    padding:10px 22px; border-radius:100px; font-weight:700; font-size:0.92rem; cursor:pointer;
+    transition:background .2s ease, color .2s ease;
+  }
+  .plan-toggle button.active{background:var(--rose); color:var(--parchment); border-color:var(--rose);}
+  .plan-toggle button span{opacity:0.8; font-weight:600;}
+  .price-card .save-badge{
+    display:inline-block; background:rgba(232,146,122,0.15); color:var(--rose);
+    font-weight:800; font-size:0.78rem; letter-spacing:0.03em; text-transform:uppercase;
+    padding:6px 14px; border-radius:100px; margin-bottom:10px;
+  }
+  .price-card .save-badge[hidden]{display:none;}
 
   /* ---------- TESTIMONIALS ---------- */
   .testimonials{background:var(--indigo);}
@@ -593,12 +607,17 @@
         <h2>One story. Every night. One simple plan.</h2>
         <p>No tiers to compare — just a nightly story, delivered like clockwork.</p>
       </div>
+      <div class="plan-toggle reveal" role="group" aria-label="Billing period">
+        <button type="button" id="planMonthlyBtn" class="active">Monthly</button>
+        <button type="button" id="planAnnualBtn">Annual <span>(save $20/yr)</span></button>
+      </div>
       <div class="price-wrap reveal">
         <div class="price-card">
           <span class="plate">Most loved</span>
           <h3>The Nightly Tale</h3>
-          <p class="amount">$7.99<span>/month per child</span></p>
-          <p class="desc">Billed monthly, per child. Cancel anytime, no questions asked.</p>
+          <p class="save-badge" id="saveBadge" hidden>Save $20/year</p>
+          <p class="amount" id="planAmount">$7.99<span>/month per child</span></p>
+          <p class="desc" id="planDesc">Billed monthly, per child. Cancel anytime, no questions asked.</p>
           <ul class="price-list">
             <li>One brand-new personalized story every night</li>
             <li>Delivered by email at 6:30 PM, your time</li>
@@ -743,6 +762,31 @@
     s.style.animationDuration = (2.5 + Math.random() * 3) + 's';
     starfield.appendChild(s);
   }
+
+  // Pricing plan toggle (monthly / annual) — display only; the actual plan
+  // choice is made from the dashboard's billing box after signup.
+  const planMonthlyBtn = document.getElementById('planMonthlyBtn');
+  const planAnnualBtn = document.getElementById('planAnnualBtn');
+  const planAmount = document.getElementById('planAmount');
+  const planDesc = document.getElementById('planDesc');
+  const saveBadge = document.getElementById('saveBadge');
+
+  function setPlan(plan) {
+    const isAnnual = plan === 'annual';
+    planMonthlyBtn.classList.toggle('active', !isAnnual);
+    planAnnualBtn.classList.toggle('active', isAnnual);
+    saveBadge.hidden = !isAnnual;
+    if (isAnnual) {
+      planAmount.innerHTML = '$75.99<span>/year per child</span>';
+      planDesc.textContent = 'Billed annually, per child. Cancel anytime, no questions asked.';
+    } else {
+      planAmount.innerHTML = '$7.99<span>/month per child</span>';
+      planDesc.textContent = 'Billed monthly, per child. Cancel anytime, no questions asked.';
+    }
+  }
+
+  planMonthlyBtn.addEventListener('click', () => setPlan('monthly'));
+  planAnnualBtn.addEventListener('click', () => setPlan('annual'));
 
   // Scroll reveal
   const revealEls = document.querySelectorAll('.reveal');

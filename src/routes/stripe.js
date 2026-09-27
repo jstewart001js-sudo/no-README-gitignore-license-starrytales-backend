@@ -8,14 +8,18 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
 
 // POST /api/stripe/create-checkout-session
-// Protected. Creates (or reuses) a Stripe customer for the logged-in parent,
-// then returns a Checkout URL for the $7.99/month-per-child plan, billed for
-// however many active children they currently have (minimum 1).
+// Protected. Body: { plan } where plan is 'monthly' (default) or 'annual'.
+// Creates (or reuses) a Stripe customer for the logged-in parent, then
+// returns a Checkout URL for the chosen plan, billed for however many
+// active children they currently have (minimum 1).
 router.post('/create-checkout-session', requireAuth, async (req, res) => {
   try {
     if (await isHouseholdMember(req.userId)) {
       return res.status(403).json({ error: 'Only the household owner can manage billing.' });
     }
+
+    const plan = req.body.plan === 'annual' ? 'annual' : 'monthly';
+    const priceId = plan === 'annual' ? process.env.STRIPE_PRICE_ID_ANNUAL : process.env.STRIPE_PRICE_ID;
 
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [req.userId]);
     const user = userResult.rows[0];
@@ -38,7 +42,7 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
       mode: 'subscription',
       customer: customerId,
       payment_method_types: ['card'],
-      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity }], // $7.99/mo per active child
+      line_items: [{ price: priceId, quantity }], // $7.99/mo or $75.99/yr per active child
       subscription_data: { trial_period_days: 7 },
       success_url: `${process.env.APP_URL}/dashboard.html?checkout=success`,
       cancel_url: `${process.env.APP_URL}/dashboard.html?checkout=cancelled`,
