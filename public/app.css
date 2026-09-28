@@ -10,6 +10,11 @@
   --ink:#2a2118;
 }
 *{box-sizing:border-box;}
+/* Author rules always beat the browser's built-in [hidden]{display:none}
+   at equal or lower specificity, since origin precedence (author > user
+   agent) is checked before specificity. Any element this file gives a
+   `display` value therefore needs this to make `el.hidden = true` work. */
+[hidden]{display:none !important;}
 body{
   margin:0; min-height:100vh;
   background:radial-gradient(ellipse at 20% 0%, #16264a 0%, var(--midnight) 60%);
