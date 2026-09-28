@@ -13,6 +13,7 @@ const THEME_LABELS = {
   animals: 'Animal Friends',
   fairytale: 'Classic Fairy Tale',
   mythical: 'Mythical Creatures',
+  dinosaurs: 'Dinosaur Valley',
 };
 
 function authHeaders() {

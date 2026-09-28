@@ -560,6 +560,7 @@
               <option value="animals">Animal Friends</option>
               <option value="fairytale">Classic Fairy Tale</option>
               <option value="mythical">Mythical Creatures</option>
+              <option value="dinosaurs">Dinosaur Valley</option>
             </select>
           </div>
           <p class="preview-hint">This is just a taste — every real StarryTales story is a full, unique tale written fresh each night.</p>
@@ -595,6 +596,7 @@
         <div class="theme-card reveal"><div class="theme-icon">🦊</div><h3>Animal Friends</h3><p>Woodland pals, talking critters, cozy dens.</p></div>
         <div class="theme-card reveal"><div class="theme-icon">🕯️</div><h3>Classic Fairy Tale</h3><p>Timeless magic with your child written into the tale.</p></div>
         <div class="theme-card reveal"><div class="theme-icon">🐉</div><h3>Mythical Creatures</h3><p>Dragons, unicorns, and gentle fairies at every turn.</p></div>
+        <div class="theme-card reveal"><div class="theme-icon">🦕</div><h3>Dinosaur Valley</h3><p>Gentle giants, misty valleys, and prehistoric wonder.</p></div>
       </div>
     </div>
   </section>
@@ -694,6 +696,7 @@
               <option value="animals">Animal Friends</option>
               <option value="fairytale">Classic Fairy Tale</option>
               <option value="mythical">Mythical Creatures</option>
+              <option value="dinosaurs">Dinosaur Valley</option>
             </select>
           </div>
           <button type="submit" class="btn-primary">Sign up</button>
@@ -829,6 +832,10 @@
     mythical: {
       title: (n) => `${n} and the Last Dragon's Egg`,
       text: (n) => `Beneath a sky full of soft starlight, a baby dragon's egg had begun to hum. <span class="story-name">${n}</span> cupped it gently in both hands as a friendly unicorn and a tiny fairy leaned in close, waiting together for the gentlest hatching the valley had ever seen.`
+    },
+    dinosaurs: {
+      title: (n) => `${n} and the Gentle Giants`,
+      text: (n) => `Mist curled low over the fern-covered valley as <span class="story-name">${n}</span> stepped out to meet a long-necked friend nibbling the treetops. A whole herd of gentle giants was waking up for the evening, and tonight <span class="story-name">${n}</span> got to walk among them.`
     }
   };
 

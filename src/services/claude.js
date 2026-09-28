@@ -20,6 +20,7 @@ const THEME_PROMPTS = {
   animals: 'a story about talking woodland animal friends and a warm, sleepy forest',
   fairytale: 'a classic fairy-tale style story, timeless and magical, but original',
   mythical: 'a gentle story starring friendly mythical creatures — dragons, unicorns, centaurs, griffins, a phoenix, mermaids, a pegasus, fairies, or kind trolls — full of wonder and no real danger',
+  dinosaurs: 'a gentle prehistoric adventure among friendly dinosaurs, roaming misty valleys and ancient forests, calm and wonder-filled, no real danger',
 };
 
 /**
