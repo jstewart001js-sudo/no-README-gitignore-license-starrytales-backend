@@ -10,6 +10,7 @@ const { router: stripeRoutes, handleWebhook } = require('./routes/stripe');
 const waitlistRoutes = require('./routes/waitlist');
 const householdRoutes = require('./routes/household');
 const referralsRoutes = require('./routes/referrals');
+const { router: unsubscribeRoutes } = require('./routes/unsubscribe');
 const { startScheduler } = require('./services/scheduler');
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/household', householdRoutes);
 app.use('/api/referrals', referralsRoutes);
+app.use('/api/unsubscribe', unsubscribeRoutes); // public, no login -- see routes/unsubscribe.js
 
 // Serve the marketing site + dashboard/login pages as static files.
 app.use(express.static(path.join(__dirname, '..', 'public')));

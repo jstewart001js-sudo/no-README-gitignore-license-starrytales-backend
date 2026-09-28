@@ -70,7 +70,7 @@ async function main() {
       );
       const storyId = inserted.rows[0].id;
 
-      await sendStoryEmail(row.parent_email, row.child_name, story);
+      await sendStoryEmail(row.parent_email, row.child_name, story, row.child_id);
       await pool.query(`UPDATE stories SET delivery_status = 'sent', sent_at = now() WHERE id = $1`, [storyId]);
 
       console.log(`SENT  child ${row.child_id} (${row.child_name}) -> ${row.parent_email} — "${story.title}"`);

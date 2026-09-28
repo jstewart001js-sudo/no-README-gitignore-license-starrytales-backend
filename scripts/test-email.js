@@ -22,7 +22,10 @@ async function main() {
   console.log(`Sending test story email to ${toEmail}...\n`);
 
   try {
-    const result = await sendStoryEmail(toEmail, childName, story);
+    // No real child row exists for this manual test, so the unsubscribe
+    // link in the email won't resolve to anything -- fine for eyeballing
+    // the email itself, which is all this script is for.
+    const result = await sendStoryEmail(toEmail, childName, story, 'test');
     console.log('Sent! Resend response:', result);
   } catch (err) {
     console.error('Email send failed:', err.message);

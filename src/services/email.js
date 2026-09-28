@@ -1,17 +1,24 @@
 require('dotenv').config();
 const { Resend } = require('resend');
+const { tokenFor } = require('../routes/unsubscribe');
 
 // Swap Resend for Postmark/SendGrid if you prefer — same idea: one function
 // that turns a story into an email and sends it.
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_ADDRESS = process.env.EMAIL_FROM || 'StarryTales <stories@starrytales.com>';
 
-function buildEmailHtml({ childName, title, body }) {
+// Required on commercial/bulk email (CAN-SPAM) and expected by spam
+// filters. Update if the business address changes.
+const MAILING_ADDRESS = '45 Macy St, Amesbury, MA 01913';
+
+function buildEmailHtml({ childName, title, body, childId }) {
   const paragraphs = body
     .split('\n')
     .filter((p) => p.trim().length > 0)
     .map((p) => `<p style="margin:0 0 16px; line-height:1.7; color:#3a2f22;">${escapeHtml(p)}</p>`)
     .join('');
+
+  const unsubscribeUrl = unsubscribeUrlFor(childId);
 
   return `
   <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
@@ -23,7 +30,20 @@ function buildEmailHtml({ childName, title, body }) {
       ${paragraphs}
       <p style="margin-top:28px; font-size:13px; color:#7a6c56;">Sweet dreams from all of us at StarryTales. 🌙</p>
     </div>
+    <div style="max-width:520px; margin:16px auto 0; text-align:center; font-size:11px; color:#5a6a8a; line-height:1.6;">
+      <p style="margin:0 0 6px;">StarryTales · ${escapeHtml(MAILING_ADDRESS)}</p>
+      <p style="margin:0;"><a href="${unsubscribeUrl}" style="color:#8a9bc0;">Pause ${escapeHtml(childName)}'s nightly stories</a></p>
+    </div>
   </div>`;
+}
+
+function buildStoryTextBody({ childName, title, body, childId }) {
+  const unsubscribeUrl = unsubscribeUrlFor(childId);
+  return `Tonight's story for ${childName}\n\n${title}\n\n${body}\n\nSweet dreams from all of us at StarryTales.\n\n--\nStarryTales · ${MAILING_ADDRESS}\nPause ${childName}'s nightly stories: ${unsubscribeUrl}`;
+}
+
+function unsubscribeUrlFor(childId) {
+  return `${process.env.APP_URL}/api/unsubscribe/${childId}?token=${tokenFor(childId)}`;
 }
 
 function escapeHtml(str) {
@@ -38,13 +58,26 @@ function escapeHtml(str) {
  * @param {string} toEmail - parent's email address
  * @param {string} childName
  * @param {{ title: string, body: string }} story
+ * @param {number|string} childId - used to build the one-click unsubscribe link
  */
-async function sendStoryEmail(toEmail, childName, story) {
+async function sendStoryEmail(toEmail, childName, story, childId) {
+  const unsubscribeUrl = unsubscribeUrlFor(childId);
+
   const { data, error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to: toEmail,
     subject: `${childName}'s bedtime story: ${story.title}`,
-    html: buildEmailHtml({ childName, title: story.title, body: story.body }),
+    html: buildEmailHtml({ childName, title: story.title, body: story.body, childId }),
+    text: buildStoryTextBody({ childName, title: story.title, body: story.body, childId }),
+    headers: {
+      // Lets Gmail/Yahoo/Outlook show their native one-click "Unsubscribe"
+      // control next to the sender name, which meaningfully helps inbox
+      // placement -- and is required once send volume crosses their bulk-
+      // sender thresholds. The mail client POSTs straight to this URL
+      // (RFC 8058); see routes/unsubscribe.js for the handler.
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 
   if (error) {
@@ -63,6 +96,7 @@ async function sendWaitlistNotification(email) {
     to: 'starrytales101@gmail.com',
     subject: 'New StarryTales waitlist signup',
     html: `<p>New waitlist signup: <strong>${escapeHtml(email)}</strong></p>`,
+    text: `New waitlist signup: ${email}`,
   });
 
   if (error) {
@@ -90,6 +124,7 @@ async function sendPasswordResetEmail(toEmail, resetUrl) {
         <p style="color:#7a6c56; font-size:13px; margin:0;">If you didn't request this, you can safely ignore this email.</p>
       </div>
     </div>`,
+    text: `Reset your password\n\nWe received a request to reset your StarryTales password. This link expires in 1 hour.\n\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`,
   });
 
   if (error) {
@@ -117,6 +152,7 @@ async function sendWelcomeEmail(toEmail) {
         <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams, from all of us at StarryTales.</p>
       </div>
     </div>`,
+    text: `Welcome to StarryTales!\n\nYour account is ready. Add a child, choose their favorite kind of story, and start your subscription to begin nightly deliveries at 6:30 PM.\n\n${dashboardUrl}\n\nSweet dreams, from all of us at StarryTales.`,
   });
 
   if (error) {
@@ -145,6 +181,7 @@ async function sendHouseholdInviteEmail(toEmail, ownerEmail, acceptUrl) {
         <p style="color:#7a6c56; font-size:13px; margin:0;">If you weren't expecting this, you can safely ignore this email.</p>
       </div>
     </div>`,
+    text: `You're invited to a StarryTales household\n\n${ownerEmail} invited you to join their StarryTales household, so you can see and manage the same children's nightly stories. This link expires in 7 days.\n\n${acceptUrl}\n\nIf you weren't expecting this, you can safely ignore this email.`,
   });
 
   if (error) {
@@ -173,6 +210,7 @@ async function sendServiceApologyEmail(toEmail) {
         <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams from all of us at StarryTales. 🌙</p>
       </div>
     </div>`,
+    text: `A quick apology from StarryTales\n\nHi there,\n\nYou may have noticed tonight's bedtime story arrived late, or not at all. That was on us — a configuration issue in our story-delivery system caused a delay for some families tonight.\n\nWe're still in the beta testing stage, working out exactly these kinds of kinks before a full launch, and we're sorry your family got caught by one. The issue is fixed, and tonight's story has now been delivered.\n\nThank you for your patience as we build this out — it means a lot to have you along for the beta.\n\nSweet dreams from all of us at StarryTales.`,
   });
 
   if (error) {
@@ -201,6 +239,7 @@ async function sendReferralInviteEmail(toEmail, referrerEmail, signupUrl) {
         <p style="color:#7a6c56; font-size:13px; margin:0;">If you weren't expecting this, you can safely ignore this email.</p>
       </div>
     </div>`,
+    text: `A bedtime story invitation\n\n${referrerEmail} thought your family would enjoy StarryTales — a fresh, personalized bedtime story for your child, delivered by email every night at 6:30 PM.\n\n${signupUrl}\n\nIf you weren't expecting this, you can safely ignore this email.`,
   });
 
   if (error) {
@@ -226,6 +265,7 @@ async function sendReferralRewardEmail(toEmail) {
         <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams from all of us at StarryTales.</p>
       </div>
     </div>`,
+    text: `Thanks for spreading the word!\n\nA friend you referred just became a StarryTales subscriber — so we've added a $7.99 credit to your account. It'll automatically apply to your next bill.\n\nSweet dreams from all of us at StarryTales.`,
   });
 
   if (error) {

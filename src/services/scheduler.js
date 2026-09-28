@@ -66,7 +66,7 @@ async function runDeliveryTick() {
       const storyId = inserted.rows[0].id;
 
       try {
-        await sendStoryEmail(row.parent_email, row.child_name, story);
+        await sendStoryEmail(row.parent_email, row.child_name, story, row.child_id);
         await pool.query(
           `UPDATE stories SET delivery_status = 'sent', sent_at = now() WHERE id = $1`,
           [storyId]

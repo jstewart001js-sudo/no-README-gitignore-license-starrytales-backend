@@ -101,7 +101,7 @@ router.post('/:childId/send-now', async (req, res) => {
     }
 
     try {
-      await sendStoryEmail(child.parent_email, child.name, story);
+      await sendStoryEmail(child.parent_email, child.name, story, child.id);
       await pool.query(`UPDATE stories SET delivery_status = 'sent', sent_at = now() WHERE id = $1`, [storyId]);
       res.json({ ok: true, title: story.title });
     } catch (sendErr) {
