@@ -19,13 +19,16 @@
     <div class="msg" id="householdBanner"></div>
 
     <div id="billingBox">
+      <p class="msg" id="compedMsg"></p>
       <button id="manageBillingBtn" class="secondary">Manage billing / subscription</button>
-      <label for="billingPlan" style="display:block; margin:14px 0 6px;">Billing plan</label>
-      <select id="billingPlan">
-        <option value="monthly">Monthly — $7.99/mo per child</option>
-        <option value="annual">Annual — $75.99/yr per child (save $20/year)</option>
-      </select>
-      <button id="startTrialBtn" style="margin-top:10px;">Start subscription</button>
+      <div id="startSubscriptionRow">
+        <label for="billingPlan" style="display:block; margin:14px 0 6px;">Billing plan</label>
+        <select id="billingPlan">
+          <option value="monthly">Monthly — $7.99/mo per child</option>
+          <option value="annual">Annual — $75.99/yr per child (save $20/year)</option>
+        </select>
+        <button id="startTrialBtn" style="margin-top:10px;">Start subscription</button>
+      </div>
       <div class="msg" id="billingMsg"></div>
     </div>
 

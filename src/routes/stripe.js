@@ -42,12 +42,23 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
     );
     const quantity = Math.max(childCountResult.rows[0].count, 1);
 
+    // Beta testers hand-picked via scripts/grant-beta-free-month.js get a
+    // 30-day trial instead of the standard 7 -- effectively "1 month free"
+    // before their card is ever actually charged. The grant is consumed
+    // (cleared) here, at session creation, not on successful payment --
+    // simplest semantics for a small, hand-onboarded list; if someone
+    // abandons checkout, re-run the grant script for just that person.
+    const trialDays = user.beta_free_month_eligible ? 30 : 7;
+    if (user.beta_free_month_eligible) {
+      await pool.query('UPDATE users SET beta_free_month_eligible = false WHERE id = $1', [user.id]);
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity }], // $7.99/mo or $75.99/yr per active child
-      subscription_data: { trial_period_days: 7 },
+      subscription_data: { trial_period_days: trialDays },
       success_url: `${process.env.APP_URL}/dashboard.html?checkout=success`,
       cancel_url: `${process.env.APP_URL}/dashboard.html?checkout=cancelled`,
     });
@@ -56,6 +67,32 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Create checkout session error', err);
     res.status(500).json({ error: 'Could not start checkout.' });
+  }
+});
+
+// GET /api/stripe/status
+// Protected. Tells the dashboard whether to show "Start subscription" or
+// "Manage billing" -- and, for a complimentary (free-for-life) account with
+// no real Stripe customer behind it, neither.
+router.get('/status', requireAuth, async (req, res) => {
+  try {
+    if (await isHouseholdMember(req.userId)) {
+      return res.status(403).json({ error: 'Only the account owner has billing status.' });
+    }
+
+    const subResult = await pool.query(
+      `SELECT id FROM subscriptions WHERE user_id = $1 AND status IN ('active', 'trialing') LIMIT 1`,
+      [req.userId]
+    );
+    const userResult = await pool.query('SELECT stripe_customer_id FROM users WHERE id = $1', [req.userId]);
+
+    res.json({
+      hasSubscription: subResult.rows.length > 0,
+      hasBilling: !!userResult.rows[0]?.stripe_customer_id,
+    });
+  } catch (err) {
+    console.error('Subscription status error', err);
+    res.status(500).json({ error: 'Could not load subscription status.' });
   }
 });
 

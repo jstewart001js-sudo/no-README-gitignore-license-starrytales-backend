@@ -2,15 +2,21 @@
 -- Run with: psql "$DATABASE_URL" -f db/schema.sql
 
 CREATE TABLE IF NOT EXISTS users (
-  id                  SERIAL PRIMARY KEY,
-  parent_email        VARCHAR(255) UNIQUE NOT NULL,
-  password_hash       VARCHAR(255) NOT NULL,
-  timezone            VARCHAR(64) NOT NULL DEFAULT 'America/New_York', -- IANA tz name
-  stripe_customer_id  VARCHAR(255) UNIQUE,
-  reset_token         VARCHAR(255),
-  reset_token_expires TIMESTAMPTZ,
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+  id                        SERIAL PRIMARY KEY,
+  parent_email              VARCHAR(255) UNIQUE NOT NULL,
+  password_hash             VARCHAR(255) NOT NULL,
+  timezone                  VARCHAR(64) NOT NULL DEFAULT 'America/New_York', -- IANA tz name
+  stripe_customer_id        VARCHAR(255) UNIQUE,
+  reset_token               VARCHAR(255),
+  reset_token_expires       TIMESTAMPTZ,
+  beta_free_month_eligible  BOOLEAN NOT NULL DEFAULT false, -- granted a 30-day trial (instead of the standard 7) on their next live checkout; cleared once that checkout session is created
+  created_at                TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- CREATE TABLE IF NOT EXISTS is a no-op against the already-existing
+-- production `users` table, so new columns need an explicit ALTER to
+-- actually apply when this file is re-run as a migration.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_free_month_eligible BOOLEAN NOT NULL DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS children (
   id            SERIAL PRIMARY KEY,
@@ -21,6 +27,10 @@ CREATE TABLE IF NOT EXISTS children (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- A row with stripe_subscription_id = NULL and status = 'active' is a
+-- complimentary "free for life" grant (see scripts/grant-free-for-life.js)
+-- -- no real Stripe object backs it, so it can never be charged. Every
+-- other row mirrors a real Stripe subscription.
 CREATE TABLE IF NOT EXISTS subscriptions (
   id                       SERIAL PRIMARY KEY,
   user_id                  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

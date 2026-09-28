@@ -297,6 +297,33 @@ function showBillingMsg(text, isError) {
   billingMsg.className = 'msg show ' + (isError ? 'error' : 'success');
 }
 
+// Shows the right billing controls for this account: a plan picker for
+// someone who hasn't subscribed yet, "Manage billing" for a real paying
+// subscriber, or a plain notice for a complimentary (free-for-life) account
+// that has no real Stripe customer behind it at all.
+async function loadBillingStatus() {
+  const res = await fetch(`${API_BASE}/api/stripe/status`, { headers: authHeaders() });
+  if (!res.ok) return;
+  const status = await res.json();
+
+  const startRow = document.getElementById('startSubscriptionRow');
+  const manageBtn = document.getElementById('manageBillingBtn');
+  const compedMsg = document.getElementById('compedMsg');
+
+  if (status.hasSubscription && !status.hasBilling) {
+    startRow.hidden = true;
+    manageBtn.hidden = true;
+    compedMsg.textContent = "Your subscription is complimentary — there's no billing to manage.";
+    compedMsg.className = 'msg show success';
+  } else if (status.hasSubscription) {
+    startRow.hidden = true;
+    manageBtn.hidden = false;
+  } else {
+    startRow.hidden = false;
+    manageBtn.hidden = false;
+  }
+}
+
 document.getElementById('startTrialBtn').addEventListener('click', async (e) => {
   const btn = e.target;
   const originalText = btn.textContent;
@@ -373,6 +400,7 @@ async function loadHouseholdStatus() {
   } else {
     loadHouseholdMembers();
     loadReferrals();
+    loadBillingStatus();
   }
 }
 
