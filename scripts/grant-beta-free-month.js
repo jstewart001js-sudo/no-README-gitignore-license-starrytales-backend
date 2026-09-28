@@ -12,15 +12,18 @@ const pool = require('../db/pool');
 const DRY_RUN = process.env.DRY_RUN === '1';
 
 async function main() {
-  const emails = process.argv.slice(2).map((e) => e.trim().toLowerCase());
+  const emails = process.argv.slice(2).map((e) => e.trim());
   if (emails.length === 0) {
     console.error('Usage: node scripts/grant-beta-free-month.js email1@example.com [email2@example.com ...]');
     process.exit(1);
   }
 
   for (const email of emails) {
+    // Case-insensitive match: signup stores parent_email exactly as typed
+    // (no normalization), so a search that force-lowercases first can miss
+    // a real account stored with different capitalization.
     const userResult = await pool.query(
-      'SELECT id, beta_free_month_eligible FROM users WHERE parent_email = $1',
+      'SELECT id, parent_email, beta_free_month_eligible FROM users WHERE LOWER(parent_email) = LOWER($1)',
       [email]
     );
     const user = userResult.rows[0];
@@ -29,17 +32,17 @@ async function main() {
       continue;
     }
     if (user.beta_free_month_eligible) {
-      console.log(`SKIP  ${email} — already eligible for the extended trial.`);
+      console.log(`SKIP  ${user.parent_email} — already eligible for the extended trial.`);
       continue;
     }
 
     if (DRY_RUN) {
-      console.log(`WOULD GRANT  ${email} — 30-day trial on next checkout`);
+      console.log(`WOULD GRANT  ${user.parent_email} — 30-day trial on next checkout`);
       continue;
     }
 
     await pool.query('UPDATE users SET beta_free_month_eligible = true WHERE id = $1', [user.id]);
-    console.log(`GRANTED  ${email} — 30-day trial on next checkout`);
+    console.log(`GRANTED  ${user.parent_email} — 30-day trial on next checkout`);
   }
 
   await pool.end();

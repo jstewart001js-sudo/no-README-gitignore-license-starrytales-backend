@@ -35,7 +35,10 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: "You can't refer yourself." });
     }
 
-    const existingUser = await pool.query('SELECT id FROM users WHERE parent_email = $1', [normalizedEmail]);
+    // Case-insensitive: signup stores parent_email exactly as typed (no
+    // normalization), so an exact match against a lowercased search term
+    // could miss an existing account stored with different capitalization.
+    const existingUser = await pool.query('SELECT id FROM users WHERE LOWER(parent_email) = $1', [normalizedEmail]);
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ error: 'That email already has a StarryTales account.' });
     }
