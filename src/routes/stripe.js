@@ -72,8 +72,13 @@ router.post('/create-checkout-session', requireAuth, async (req, res) => {
 
 // GET /api/stripe/status
 // Protected. Tells the dashboard whether to show "Start subscription" or
-// "Manage billing" -- and, for a complimentary (free-for-life) account with
-// no real Stripe customer behind it, neither.
+// "Manage billing" -- and, for a complimentary (free-for-life) account,
+// neither. hasBilling reflects whether the CURRENT active/trialing
+// subscription row is backed by a real Stripe subscription (as opposed to
+// a free-for-life grant, stripe_subscription_id = NULL) -- not whether
+// users.stripe_customer_id happens to be set, since that can persist from
+// a since-canceled real subscription (e.g. an account converted to
+// free-for-life via scripts/convert-to-free-for-life.js).
 router.get('/status', requireAuth, async (req, res) => {
   try {
     if (await isHouseholdMember(req.userId)) {
@@ -81,14 +86,16 @@ router.get('/status', requireAuth, async (req, res) => {
     }
 
     const subResult = await pool.query(
-      `SELECT id FROM subscriptions WHERE user_id = $1 AND status IN ('active', 'trialing') LIMIT 1`,
+      `SELECT stripe_subscription_id FROM subscriptions
+       WHERE user_id = $1 AND status IN ('active', 'trialing')
+       ORDER BY created_at DESC LIMIT 1`,
       [req.userId]
     );
-    const userResult = await pool.query('SELECT stripe_customer_id FROM users WHERE id = $1', [req.userId]);
+    const sub = subResult.rows[0];
 
     res.json({
-      hasSubscription: subResult.rows.length > 0,
-      hasBilling: !!userResult.rows[0]?.stripe_customer_id,
+      hasSubscription: !!sub,
+      hasBilling: !!(sub && sub.stripe_subscription_id),
     });
   } catch (err) {
     console.error('Subscription status error', err);
