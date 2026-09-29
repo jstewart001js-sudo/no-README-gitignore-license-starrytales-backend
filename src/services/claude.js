@@ -47,6 +47,7 @@ Rules:
 - Length: 5-7 short paragraphs, simple sentences, calm pacing that winds down toward a peaceful ending.
 - End on a sleepy, cozy note (the character getting drowsy, heading to bed, stars coming out, etc.).
 - Each night's story must feel distinct from previous nights, even within the same theme.
+- Give any named character a fresh, specific name each time. Don't default to the same handful of "safe" cute names (e.g. Sparkle, Ember, Marmalade, Luna) — vary the sound, length, and style of names night to night, across every family reading these stories, not just this one child.
 - Use the write_bedtime_story tool to submit the finished story.${avoidanceNote}`;
 
   const userPrompt = `Write tonight's bedtime story starring a child named ${childName}. Theme: ${themeDescription}.`;
