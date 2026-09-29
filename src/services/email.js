@@ -274,11 +274,49 @@ async function sendReferralRewardEmail(toEmail) {
   return data;
 }
 
+/**
+ * One-off beta-update announcement: new story themes, the annual plan,
+ * and an Instagram follow ask. Sent to a hand-picked list of real
+ * subscribers -- see scripts/send-beta-update-email.js.
+ * @param {string} toEmail - the account's email address
+ */
+async function sendBetaUpdateEmail(toEmail) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: "New themes, an annual plan, and more at StarryTales",
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">What's new at StarryTales 🌙</h1>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">Hi there,</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">A quick update on what's new since you joined us for the beta:</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;"><strong>Three new story themes</strong> — your child can now become the hero of <strong>Mythical Creatures</strong> (dragons, unicorns, and gentle fairies), <strong>Dinosaur Valley</strong> (gentle giants and misty valleys), or <strong>Super Squad</strong> (kind superpowers and everyday heroics), alongside the original six. Switch anytime from your dashboard.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;"><strong>An annual plan</strong> — if you'd rather not think about it every month, you can now subscribe annually and save $20/year compared to paying monthly.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;"><strong>One more thing</strong> — we're now on Instagram! Follow <a href="https://www.instagram.com/starrytales2026" style="color:#8a2f2f;">@starrytales2026</a> for behind-the-scenes updates and to help us shape what comes next.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 20px;">Thanks for being part of the beta — it genuinely shapes what we build.</p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams from all of us at StarryTales. 🌙</p>
+      </div>
+      <div style="max-width:480px; margin:16px auto 0; text-align:center; font-size:11px; color:#5a6a8a; line-height:1.6;">
+        <p style="margin:0;">StarryTales · ${escapeHtml(MAILING_ADDRESS)}</p>
+        <p style="margin:4px 0 0;">Reply to this email if you'd rather not receive updates like this.</p>
+      </div>
+    </div>`,
+    text: `What's new at StarryTales\n\nHi there,\n\nA quick update on what's new since you joined us for the beta:\n\nThree new story themes — your child can now become the hero of Mythical Creatures (dragons, unicorns, and gentle fairies), Dinosaur Valley (gentle giants and misty valleys), or Super Squad (kind superpowers and everyday heroics), alongside the original six. Switch anytime from your dashboard.\n\nAn annual plan — if you'd rather not think about it every month, you can now subscribe annually and save $20/year compared to paying monthly.\n\nOne more thing — we're now on Instagram! Follow @starrytales2026 (https://www.instagram.com/starrytales2026) for behind-the-scenes updates and to help us shape what comes next.\n\nThanks for being part of the beta — it genuinely shapes what we build.\n\nSweet dreams from all of us at StarryTales.\n\n--\nStarryTales · ${MAILING_ADDRESS}\nReply to this email if you'd rather not receive updates like this.`,
+  });
+
+  if (error) {
+    throw new Error(`Beta update email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
 module.exports = {
   sendStoryEmail,
   sendServiceApologyEmail,
   sendReferralInviteEmail,
   sendReferralRewardEmail,
+  sendBetaUpdateEmail,
   sendWaitlistNotification,
   sendPasswordResetEmail,
   sendWelcomeEmail,
