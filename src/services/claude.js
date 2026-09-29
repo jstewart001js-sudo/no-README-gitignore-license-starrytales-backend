@@ -20,7 +20,7 @@ const THEME_PROMPTS = {
   animals: 'a story about talking woodland animal friends and a warm, sleepy forest',
   fairytale: 'a classic fairy-tale style story, timeless and magical, but original',
   mythical: 'a gentle story starring friendly mythical creatures — dragons, unicorns, centaurs, griffins, a phoenix, mermaids, a pegasus, fairies, or kind trolls — full of wonder and no real danger',
-  dinosaurs: 'a gentle prehistoric adventure among friendly dinosaurs — name specific kinds like a Triceratops, Stegosaurus, Brontosaurus, Hadrosaurus, Pterodactyl, a gentle Velociraptor, a gentle Allosaurus, or a gentle T. Rex — roaming misty valleys and ancient forests, calm and wonder-filled, no real danger',
+  dinosaurs: 'a gentle prehistoric adventure among friendly dinosaurs — name specific kinds like a Triceratops, Stegosaurus, Brontosaurus, Brachiosaurus, Hadrosaurus, Ankylosaurus, Pterodactyl, a gentle Velociraptor, a gentle Allosaurus, a gentle Spinosaurus, or a gentle T. Rex — roaming misty valleys and ancient forests, calm and wonder-filled, no real danger',
   superheroes: 'a gentle superhero story where the child has a kind superpower and uses it to help neighbors and friends solve small, everyday problems — brave and warm, with no real danger or villains',
 };
 
