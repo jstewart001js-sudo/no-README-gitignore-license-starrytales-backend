@@ -14,6 +14,7 @@ const THEME_LABELS = {
   fairytale: 'Classic Fairy Tale',
   mythical: 'Mythical Creatures',
   dinosaurs: 'Dinosaur Valley',
+  superheroes: 'Super Squad',
 };
 
 function authHeaders() {
