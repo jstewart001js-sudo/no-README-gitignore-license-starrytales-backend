@@ -55,9 +55,16 @@ async function main() {
     }
 
     try {
+      // Includes recent titles from OTHER children on the same theme, not
+      // just this child's own history -- see scheduler.js for why.
       const recentTitlesResult = await pool.query(
-        `SELECT title FROM stories WHERE child_id = $1 ORDER BY created_at DESC LIMIT 5`,
-        [row.child_id]
+        `SELECT s.title FROM stories s
+         JOIN children c ON c.id = s.child_id
+         WHERE s.child_id = $1
+            OR (c.story_theme = $2 AND s.created_at > now() - interval '14 days')
+         ORDER BY s.created_at DESC
+         LIMIT 20`,
+        [row.child_id, row.story_theme]
       );
       const recentTitles = recentTitlesResult.rows.map((r) => r.title);
 

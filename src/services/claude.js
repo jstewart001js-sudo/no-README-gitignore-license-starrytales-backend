@@ -28,14 +28,14 @@ const THEME_PROMPTS = {
  * Generates one unique bedtime story for a child.
  * @param {string} childName
  * @param {string} theme - one of the THEME_PROMPTS keys
- * @param {string[]} recentTitles - titles of this child's most recent stories, to steer away from repeats
+ * @param {string[]} recentTitles - recent titles on this theme (this child's own history, plus other children's, so stories don't converge on the same "default" title/plot/character names across unrelated families) to steer away from repeats
  * @returns {Promise<{ title: string, body: string }>}
  */
 async function generateStory(childName, theme, recentTitles = []) {
   const themeDescription = THEME_PROMPTS[theme] || THEME_PROMPTS.adventure;
 
   const avoidanceNote = recentTitles.length
-    ? `\n- This child has already received these recent stories -- do not reuse their titles, settings, plots, or named side-characters. Make tonight's story clearly different (a new setting detail, new supporting characters, a new central event, and a new title):\n${recentTitles
+    ? `\n- These titles have already been used recently for this theme (by this child and/or others) -- do not reuse their titles, settings, plots, or named characters. Make tonight's story clearly different (a new setting detail, new supporting characters, a new central event, and a new title):\n${recentTitles
         .map((t) => `  - "${t}"`)
         .join('\n')}`
     : '';
