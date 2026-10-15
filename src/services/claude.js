@@ -45,6 +45,7 @@ Rules:
 - The child named below is always the warm, brave, kind hero of the story.
 - Keep it gentle and calming — suitable to read right before sleep. No peril that isn't quickly resolved, nothing scary, sad, or violent.
 - Length: 5-7 short paragraphs, simple sentences, calm pacing that winds down toward a peaceful ending.
+- Shape each story like a classic story mountain: open by introducing the child and setting, build up through one or two small developments, reach a single clear peak moment — the most important or exciting part of the night (still gentle, no real danger) — then resolve it, and wind down to the sleepy ending. Don't just string together several small, equally-weighted moments with no real build or peak.
 - End on a sleepy, cozy note (the character getting drowsy, heading to bed, stars coming out, etc.).
 - Each night's story must feel distinct from previous nights, even within the same theme.
 - Give every named character a fresh name each time — the main companion, any side character, even a neighbor mentioned in passing. Don't default to the same handful of "safe" choices (e.g. a creature always called Sparkle, Ember, or Marmalade; an elderly neighbor always called Mr. or Mrs. Petrov) — draw from a wide, varied pool of names and cultures night to night, across every family reading these stories, not just this one child.
