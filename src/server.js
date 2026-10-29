@@ -11,6 +11,7 @@ const waitlistRoutes = require('./routes/waitlist');
 const householdRoutes = require('./routes/household');
 const referralsRoutes = require('./routes/referrals');
 const { router: unsubscribeRoutes } = require('./routes/unsubscribe');
+const adminTriggerRoutes = require('./routes/admin-trigger');
 const { startScheduler } = require('./services/scheduler');
 
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/household', householdRoutes);
 app.use('/api/referrals', referralsRoutes);
 app.use('/api/unsubscribe', unsubscribeRoutes); // public, no login -- see routes/unsubscribe.js
+app.use('/api/admin', adminTriggerRoutes); // gated by ADMIN_TRIGGER_SECRET, not a user session -- see routes/admin-trigger.js
 
 // Serve the marketing site + dashboard/login pages as static files.
 app.use(express.static(path.join(__dirname, '..', 'public')));
