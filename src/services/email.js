@@ -311,12 +311,48 @@ async function sendBetaUpdateEmail(toEmail) {
   return data;
 }
 
+// One-off — asks early beta testers for written feedback and, optionally,
+// a short (<1 min) video, both sent back to the business inbox rather than
+// handled through any in-app flow. See scripts/send-beta-feedback-request.js.
+async function sendBetaFeedbackRequestEmail(toEmail) {
+  const { data, error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: toEmail,
+    subject: "A quick favor — how's StarryTales going for you?",
+    html: `
+    <div style="background:#0c1526; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif;">
+      <div style="max-width:480px; margin:0 auto; background:#faf3e4; border-radius:14px; padding:32px;">
+        <h1 style="font-size:22px; margin:0 0 16px; color:#2a2118;">A quick favor 🌙</h1>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">Hi there,</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">You've been with StarryTales since the beginning, and your feedback would genuinely help shape where we take it next.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 8px;">If you have a few minutes, I'd love for you to send over:</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 8px;"><strong>A quick write-up</strong> of how it's been going — what you and your kids like, what's annoying, anything you wish worked differently.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;"><strong>Bonus:</strong> if you're up for it, a short video (under a minute) of you talking through your experience would be amazing — even just from your phone.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 20px;">You can send either (or both!) to <strong>Starrytales101@gmail.com</strong>.</p>
+        <p style="color:#3a2f22; line-height:1.7; margin:0 0 16px;">Thank you for being part of this from the start — it means a lot.</p>
+        <p style="color:#7a6c56; font-size:13px; margin:0;">Sweet dreams,<br>The StarryTales team 🌙</p>
+      </div>
+      <div style="max-width:480px; margin:16px auto 0; text-align:center; font-size:11px; color:#5a6a8a; line-height:1.6;">
+        <p style="margin:0;">StarryTales · ${escapeHtml(MAILING_ADDRESS)}</p>
+        <p style="margin:4px 0 0;">Reply to this email if you'd rather not receive messages like this.</p>
+      </div>
+    </div>`,
+    text: `A quick favor\n\nHi there,\n\nYou've been with StarryTales since the beginning, and your feedback would genuinely help shape where we take it next.\n\nIf you have a few minutes, I'd love for you to send over:\n\nA quick write-up of how it's been going — what you and your kids like, what's annoying, anything you wish worked differently.\n\nBonus: if you're up for it, a short video (under a minute) of you talking through your experience would be amazing — even just from your phone.\n\nYou can send either (or both!) to Starrytales101@gmail.com.\n\nThank you for being part of this from the start — it means a lot.\n\nSweet dreams,\nThe StarryTales team\n\n--\nStarryTales · ${MAILING_ADDRESS}\nReply to this email if you'd rather not receive messages like this.`,
+  });
+
+  if (error) {
+    throw new Error(`Beta feedback request email failed: ${error.message || error}`);
+  }
+  return data;
+}
+
 module.exports = {
   sendStoryEmail,
   sendServiceApologyEmail,
   sendReferralInviteEmail,
   sendReferralRewardEmail,
   sendBetaUpdateEmail,
+  sendBetaFeedbackRequestEmail,
   sendWaitlistNotification,
   sendPasswordResetEmail,
   sendWelcomeEmail,
