@@ -21,7 +21,7 @@ const THEME_PROMPTS = {
   fairytale: 'a classic fairy-tale style story, timeless and magical, but original',
   mythical: 'a gentle story starring friendly mythical creatures — dragons, unicorns, centaurs, griffins, a phoenix, mermaids, a pegasus, fairies, or kind trolls — full of wonder and no real danger',
   dinosaurs: 'a gentle prehistoric adventure among friendly dinosaurs — name specific kinds like a Triceratops, Stegosaurus, Brontosaurus, Brachiosaurus, Hadrosaurus, Ankylosaurus, Pterodactyl, a gentle Velociraptor, a gentle Allosaurus, a gentle Spinosaurus, or a gentle T. Rex — roaming misty valleys and ancient forests, calm and wonder-filled, no real danger',
-  superheroes: 'a gentle superhero story where the child has a kind superpower and uses it to solve one meaningful problem for a neighbor or friend — a single caring act, building to one clear moment where the power really matters, not a checklist of several small favors — brave and warm, with no real danger or villains',
+  superheroes: 'a gentle superhero story where the child has a kind superpower and uses it to solve one meaningful problem for a neighbor or friend — a single caring act, building to one clear moment where the power really matters, not a checklist of several small favors — brave and warm, with no real danger or villains. Set it somewhere besides yet another small town named some kind of "Hollow" — vary the setting itself night to night: a specific city neighborhood, a seaside boardwalk town, a mountain village, a suburban cul-de-sac, a lakeside community, a busy downtown block, a quiet farming town, a harbor village, and so on',
 };
 
 /**
@@ -49,6 +49,7 @@ Rules:
 - End on a sleepy, cozy note (the character getting drowsy, heading to bed, stars coming out, etc.).
 - Each night's story must feel distinct from previous nights, even within the same theme.
 - Give every named character a fresh name each time — the main companion, any side character, even a neighbor mentioned in passing. Don't default to the same handful of "safe" choices (e.g. a creature always called Sparkle, Ember, or Marmalade; an elderly neighbor always called Mr. or Mrs. Petrov) — draw from a wide, varied pool of names and cultures night to night, across every family reading these stories, not just this one child.
+- The same goes for any named place — a town, neighborhood, street, or building. Don't default to the same handful of "safe" place names or naming patterns (e.g. every town ending in "Hollow," "ville," or "burg") — vary both the name and the kind of place night to night, across every family reading these stories.
 - Use the write_bedtime_story tool to submit the finished story.${avoidanceNote}`;
 
   const userPrompt = `Write tonight's bedtime story starring a child named ${childName}. Theme: ${themeDescription}.`;
